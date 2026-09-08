@@ -2,6 +2,8 @@
 
 検証日: 2026-09-08。最終コードのPython unittest **12件成功**、Node契約テスト **6件成功**、静的ビルド **23ファイル成功**。
 
+公開追記: GitHub https://github.com/YOSHINO627/poop-dog へのソース登録と、Vercel https://poop-dog.vercel.app/ のProduction Readyを確認。GitHub Actionsでもテスト・ビルドが成功しました。ブラウザアップロード後にGitで取得し、ゲームコード全ファイルがローカル版と一致することを照合済みです。
+
 「自動」はゲームモデルまたは模擬DOMでのテストです。「ブラウザ」はCodex内のブラウザで直接確認したものです。iPhone Safari実機と同義ではありません。
 
 |受入番号|項目|確認結果|
@@ -29,8 +31,8 @@
 |35–36|タッチ・同時押し|模擬Pointer Eventsで左右＋ジャンプ、個別解除、cancel確認。実機未確認|
 |37–38|PNG選択・反映|変換処理とPython受け渡し形式を自動確認。ブラウザファイル選択は試行したがツール応答が不安定で結果未確認|
 |39|不正PNGで停止しない|サイズ違い・不正署名・前回画像維持を自動確認|
-|40|GitHub登録可能|ソース、gitignore、GitHub Actions準備済み。実登録は依頼によりスキップ|
-|41|Vercel公開可能|静的ビルド・vercel.json準備済み。本番公開は依頼によりスキップ|
+|40|GitHub登録可能|実登録完了、GitHub Actions成功|
+|41|Vercel公開可能|本番公開完了、Production Ready・HTTPSページ配信確認|
 
 ## Phaseと回帰範囲
 
@@ -47,7 +49,7 @@
 |22–23|複数pointerIdの独立追跡と中断処理。iPhone実機は未確認|
 |24|サイズ・署名・透明色・不正入力維持の契約テスト|
 |25|実ブラウザでWASM起動とTITLE/START。PNGの実機能確認は未完了|
-|26–27|登録・公開用コード完成。実操作は指定によりスキップ|
+|26–27|GitHub登録・Vercel本番公開を完了|
 
 ## ブラウザ確認で修正した問題
 

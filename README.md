@@ -1,5 +1,10 @@
 # POOP DOG
 
+公開URL: https://poop-dog.vercel.app/  
+GitHub: https://github.com/YOSHINO627/poop-dog
+
+2026-09-08にGitHub登録・Vercel本番公開を完了。`main`への変更でGitHub ActionsとVercelの自動デプロイが実行されます。Vercel Teamは `YOSHINO627`（URL slug: `yoshino-627`）、Projectは `poop-dog` です。
+
 Python + Pyxelで実装した256×144の横スクロール回避アクション。ブラック＋クリームのカニンヘンダックスを操作し、HP3を引き継ぎながら30秒×5Waveを生存します。
 
 ゲームロジックは `src/` のPythonだけです。PC版はPyxel、Web版は同じPythonをPyodide + Pyxel WASMで実行します。Vercelは静的ファイルのみ配信し、サーバーでPythonやPyxelを実行しません。JSは起動・入力・PNG変換・localStorageだけを担当します。
@@ -62,7 +67,7 @@ poop-dog/
 
 ## 3. 未実装・未完了
 
-要求されたMVPのコードは実装済みです。GitHubへの実登録とVercelへの本番公開は、ユーザーの指定により今回はスキップしました。iPhone実機SafariとPCネイティブ版の実操作確認は未実施です。ブラウザ確認と自動テストの範囲はQA.mdを参照してください。
+要求されたMVPのコードは実装済みで、GitHub登録・Vercel本番公開も完了しました。iPhone実機SafariとPCネイティブ版の実操作確認は未実施です。ブラウザ確認と自動テストの範囲はQA.mdを参照してください。
 
 ## 4. PCネイティブ版のローカル起動
 
@@ -155,7 +160,7 @@ GitHubで空のリポジトリを作成し、URLの `YOUR_ACCOUNT` を置き換�
 
 ## 13. 既知の制約
 
-- iPhone実機Safari、PCネイティブ操作、実際のVercel配信は未検証です。
+- iPhone実機Safari、PCネイティブ操作は未検証です。Vercel本番の静的配信は確認済みです。
 - 初回起動のCDNダウンロード量と速度、端末メモリにより待ち時間が生じます。オフライン起動には対応していません。
 - 一方向足場です。犬は下から通過して上に着地できます。木・フェンスは背景です。Poopは描画上の背もたれではなく足場天面で消えます。
 - ベンチ下に居続ける安全策が成立します。MVPでは隠れ続けることへのペナルティはありません。
