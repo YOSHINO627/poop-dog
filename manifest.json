@@ -1,0 +1,21 @@
+[
+  "main.py",
+  "src/bridge.py",
+  "src/camera.py",
+  "src/collision.py",
+  "src/config.py",
+  "src/game.py",
+  "src/hazard.py",
+  "src/platform.py",
+  "src/player.py",
+  "src/poop.py",
+  "src/renderer.py",
+  "src/score_manager.py",
+  "src/stage.py",
+  "src/wave_manager.py",
+  "src/__init__.py",
+  "assets/default_player.png",
+  "assets/default_player.json",
+  "assets/stage.json",
+  "assets/palette.json"
+]
