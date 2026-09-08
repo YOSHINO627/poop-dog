@@ -1,0 +1,67 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import vm from 'node:vm';
+import { readFile } from 'node:fs/promises';
+const source = await readFile(new URL('../app.js', import.meta.url), 'utf8');
+const palette = JSON.parse(await readFile(new URL('../assets/palette.json', import.meta.url), 'utf8'));
+class Element {
+  constructor(action) { this.dataset = {action}; this.listeners = {}; this.textContent = ''; this.classList = {add(){},remove(){},toggle(){}}; }
+  addEventListener(name, fn) { (this.listeners[name] ||= []).push(fn); }
+  setPointerCapture() {}
+  focus() {}
+  async emit(name, event={}) { for (const fn of this.listeners[name] || []) await fn({preventDefault(){}, ...event}); }
+}
+function fixture(blocked=false, stored='0') {
+  const elements = Object.fromEntries(['best','action','game-status','sprite-status','screen','load','load-status','canvas','boot','sprite'].map(id => ['#'+id,new Element()]));
+  elements['.arcade'] = new Element();
+  const buttons = ['left','right','jump'].map(action=>new Element(action));
+  const data = new Map([['poop_dog_best_score', stored]]);
+  const window = new Element();
+  const document = new Element();
+  Object.assign(document, {hidden:false, querySelector:q=>elements[q], querySelectorAll:q=>q==='[data-action]'?buttons:[],
+    createElement:()=>({getContext:()=>({drawImage(){},getImageData:()=>({data:Uint8ClampedArray.from({length:4096},(_,i)=>i===3?0:255)})})})});
+  const context = vm.createContext({window,document,console,Set,Array,JSON,Number,String,Math,Uint8Array,DataView,
+    localStorage:{getItem:k=>{if(blocked)throw Error('blocked');return data.get(k)},setItem:(k,v)=>{if(blocked)throw Error('blocked');data.set(k,v)}},
+    URL:{createObjectURL:()=> 'blob:test',revokeObjectURL(){}},
+    Image:class {naturalWidth=64;naturalHeight=16;async decode(){}},
+    fetch:async()=>({ok:true,json:async()=>palette})});
+  vm.runInContext(source, context);
+  return {host:window.poopDog,buttons,elements,data,window,document};
+}
+const poll = f => JSON.parse(f.host.pollInput());
+test('localStorage BEST is monotonic and survives a new host', () => {
+  const f=fixture(false,'1230');assert.equal(f.host.loadBest(),1230);
+  f.host.saveBest(6500);f.host.saveBest(100);assert.equal(f.data.get('poop_dog_best_score'),'6500');
+  assert.equal(fixture(false,f.data.get('poop_dog_best_score')).host.loadBest(),6500);
+});
+test('storage denial and corrupt values never stop gameplay',()=>{
+  const f=fixture(true);f.host.saveBest(120);assert.equal(f.host.loadBest(),120);assert.equal(poll(f).left,false);
+  assert.equal(fixture(false,'NaN').host.loadBest(),0);
+});
+test('RIGHT + JUMP / LEFT + JUMP, independent release, cancellation',async()=>{
+  const f=fixture();const [left,right,jump]=f.buttons;
+  await right.emit('pointerdown',{pointerId:1});await jump.emit('pointerdown',{pointerId:2});
+  let input=poll(f);assert.equal(input.right,true);assert.equal(input.jump,true);assert.equal(input.jumpPressed,true);
+  assert.equal(poll(f).jumpPressed,false);
+  await jump.emit('pointerup',{pointerId:2});input=poll(f);assert.equal(input.right,true);assert.equal(input.jump,false);
+  await right.emit('pointercancel',{pointerId:1});await left.emit('pointerdown',{pointerId:3});await jump.emit('pointerdown',{pointerId:4});
+  input=poll(f);assert.equal(input.left,true);assert.equal(input.jump,true);
+  await f.window.emit('blur');input=poll(f);assert.equal(input.left,false);assert.equal(input.jump,false);assert.equal(input.paused,true);
+});
+test('two fingers on same control preserve hold until both release',async()=>{
+  const f=fixture(), right=f.buttons[1];await right.emit('pointerdown',{pointerId:1});await right.emit('pointerdown',{pointerId:2});
+  await right.emit('pointerup',{pointerId:1});assert.equal(poll(f).right,true);
+  await right.emit('lostpointercapture',{pointerId:2});assert.equal(poll(f).right,false);
+});
+function png(width=64,height=16){const bytes=new Uint8Array(24);bytes.set([137,80,78,71,13,10,26,10]);const view=new DataView(bytes.buffer);view.setUint32(16,width);view.setUint32(20,height);return {size:24,arrayBuffer:async()=>bytes.buffer}}
+async function upload(f,file){await f.elements['#sprite'].emit('change',{target:{files:[file],value:''}})}
+test('64x16 upload converts pixels and reserves transparent color',async()=>{
+  const f=fixture();await upload(f,png());const rows=JSON.parse(f.host.takeSprite());
+  assert.equal(rows.length,16);assert.equal(rows[0].length,64);assert.equal(rows[0][0],'f');assert.ok(!rows[0].slice(1).includes('f'));
+  assert.equal(f.host.takeSprite(),'');
+});
+test('invalid PNG keeps pending good sprite and reports error',async()=>{
+  const f=fixture();await upload(f,png());await upload(f,png(32,32));assert.match(f.elements['#sprite-status'].textContent,/64/);
+  assert.equal(JSON.parse(f.host.takeSprite()).length,16);
+  await upload(f,{size:4,arrayBuffer:async()=>new Uint8Array(4).buffer});assert.equal(f.host.takeSprite(),'');
+});
