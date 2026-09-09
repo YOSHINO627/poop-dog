@@ -231,7 +231,7 @@ class Renderer:
             p.text(176, 21, 'DEBUG / NO BEST', 8)
         if game.state == GameState.PLAYING:
             if game.rain.warning or game.rain.shower:
-                self.center('POOP METEOR SHOWER!', 30, 10)
+                self.center('DANGER! POOP METEOR SHOWER!', 38, 8)
             if game.score.combo_count:
                 p.text(5, 21, f'FOOD {game.score.combo_count}/{C.KIBBLE_COMBO_COUNT}', 7)
             return
