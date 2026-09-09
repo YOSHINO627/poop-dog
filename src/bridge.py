@@ -28,5 +28,5 @@ class Bridge:
             self.host.publish(json.dumps({
                 'state': game.state.name, 'hp': game.hp,
                 'score': game.score.score, 'best': game.score.best,
-                'wave': game.wave.index + 1, 'time': game.wave.remaining,
+                'level': game.wave.level + 1, 'wave': game.wave.index + 1, 'time': game.wave.remaining,
             }))

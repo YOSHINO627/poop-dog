@@ -3,7 +3,8 @@ from .collision import Rect, horizontal_overlap
 from . import config as C
 
 class Poop(Hazard):
-    def __init__(self, x, speed, y=C.POOP_START_Y, *, piercing=False):
+    def __init__(self, x, speed, y=C.POOP_START_Y, *, piercing=False, size=C.POOP_SIZE, meteor=False):
+        self.size, self.meteor = size, meteor
         self.x, self.y, self.speed = x, y, speed
         self.piercing = piercing
         self.alive = True
@@ -13,19 +14,19 @@ class Poop(Hazard):
     @property
     def hitbox(self):
         # Swept vertical box prevents tunnelling through the dog at high speeds.
-        return Rect(self.x, self.previous_y, C.POOP_SIZE,
-                    C.POOP_SIZE + self.y - self.previous_y)
+        return Rect(self.x, self.previous_y, self.size,
+                    self.size + self.y - self.previous_y)
 
     def update(self, platforms):
         self.previous_y = self.y
-        bottom = self.y + C.POOP_SIZE
+        bottom = self.y + self.size
         self.y += self.speed
-        surfaces = [p.top_at(self.x + C.POOP_SIZE / 2) for p in platforms
-                    if horizontal_overlap(self.x, C.POOP_SIZE, p)
+        surfaces = [p.top_at(self.x + self.size / 2) for p in platforms
+                    if horizontal_overlap(self.x, self.size, p)
                     and (not self.piercing or
                          (p.x == 0 and p.w == C.STAGE_WIDTH
                           and p.y == C.GROUND_Y and p.end_y is None))]
-        impacts = [top for top in surfaces if bottom <= top <= self.y + C.POOP_SIZE]
+        impacts = [top for top in surfaces if bottom <= top <= self.y + self.size]
         if impacts:
             self.impact = (self.x, min(impacts))
             self.alive = False
@@ -33,7 +34,7 @@ class Poop(Hazard):
             self.alive = False
 
     def draw(self, renderer):
-        renderer.poop(self.x, self.y, self.piercing)
+        renderer.poop(self.x, self.y, self.piercing, self.size, self.meteor)
 
 def create_hazard(rng, settings, stage=None):
     piercing = rng.random() < settings.piercing_chance

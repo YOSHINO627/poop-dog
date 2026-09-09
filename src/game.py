@@ -9,6 +9,8 @@ from .score_manager import ScoreManager
 from .poop import create_hazard
 from .floral import Floral
 from .kibble import KibbleField
+from .friend import Friend
+from .rain_events import RainEvents
 
 class GameState(Enum):
     TITLE = auto()
@@ -39,7 +41,21 @@ class Game:
         self.interval_ticks = 0
         self.last_bonus = 0
         self.score.reset()
+        self.begin_encounters()
         self.state = GameState.PLAYING
+
+    def begin_encounters(self):
+        self.rain = RainEvents(self.rng)
+        # Spawn well away from the dog, so a new wave never causes instant damage.
+        edge = C.STAGE_WIDTH-C.FRIEND_WIDTH if self.player.x < C.STAGE_WIDTH/2 else 0
+        near = self.player.x + (170 if self.player.x < C.STAGE_WIDTH/2 else -170)
+        self.friends = [Friend(kind, near if kind == "poodle" else edge) for kind in C.LEVELS[self.wave.level].friends]
+
+    def damage(self):
+        if not self.player.invincible:
+            self.hp -= 1
+            self.wave.wave_damaged = True
+            self.player.invincible = C.INVINCIBLE_TICKS
 
     def next_floral_delay(self):
         return self.rng.randint(C.FLORAL_MIN_TICKS, C.FLORAL_MAX_TICKS)
@@ -72,14 +88,19 @@ class Game:
         if self.state == GameState.WAVE_CLEAR:
             self.interval_ticks += 1
             if self.interval_ticks >= C.INTERVAL_SECONDS * C.FPS:
-                self.wave.index += 1
-                self.wave.begin()
+                self.wave.advance()
+                self.begin_encounters()
                 self.state = GameState.PLAYING
             return
         self.player.update(direction, jump, self.stage.platforms)
         self.camera.update(self.player)
         self.splashes = [(x, y, age - 1) for x, y, age in self.splashes if age > 1]
         self.wave.tick(self.score)
+        self.rain.update(self.rng, self.wave, self.camera, self.hazards)
+        for friend in self.friends:
+            friend.update(self.player)
+            if friend.hitbox.overlaps(self.player.hitbox):
+                self.damage()
         if self.wave.spawn_due() and len(self.hazards) < self.wave.settings.max_poops:
             self.hazards.append(self.hazard_factory(self.rng, self.wave.settings))
         for hazard in self.hazards:
@@ -89,10 +110,7 @@ class Game:
                 self.splashes.append((*impact, C.SPLASH_TICKS))
             if hazard.alive and hazard.hitbox.overlaps(self.player.hitbox):
                 hazard.alive = False
-                if not self.player.invincible:
-                    self.hp -= 1
-                    self.wave.wave_damaged = True
-                    self.player.invincible = C.INVINCIBLE_TICKS
+                self.damage()
         self.hazards = [h for h in self.hazards if h.alive]
         # A lethal hit remains lethal; healing does not erase wave damage history.
         if self.hp > 0:
@@ -112,5 +130,5 @@ class Game:
             self.heal_feedback_ticks = 0
             self.splashes.clear()
             self.interval_ticks = 0
-            self.state = (GameState.GAME_CLEAR if self.wave.index == len(C.WAVES) - 1
+            self.state = (GameState.GAME_CLEAR if self.wave.final
                           else GameState.WAVE_CLEAR)

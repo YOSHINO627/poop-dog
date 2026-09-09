@@ -2,6 +2,7 @@ from . import config as C
 
 class WaveManager:
     def __init__(self):
+        self.level = 0
         self.index = 0
         self.begin()
 
@@ -9,6 +10,17 @@ class WaveManager:
         self.ticks = 0
         self.spawn_ticks = 0
         self.wave_damaged = False
+
+    @property
+    def final(self):
+        return self.level == len(C.LEVELS)-1 and self.index == len(C.WAVES)-1
+
+    def advance(self):
+        self.index += 1
+        if self.index == len(C.WAVES):
+            self.index = 0
+            self.level += 1
+        self.begin()
 
     @property
     def settings(self):

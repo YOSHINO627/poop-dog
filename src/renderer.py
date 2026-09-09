@@ -20,8 +20,17 @@ class Renderer:
     def center(self, text, y, color=7):
         p.text((C.WIDTH - len(text) * 4) // 2, y, text, color)
 
-    def poop(self, x, y, piercing=False):
+    def poop(self, x, y, piercing=False, size=C.POOP_SIZE, meteor=False):
         x, y = int(x), int(y)
+        if size > C.POOP_SIZE:
+            p.rect(x, y+size*2//3, size, size//3, 2)
+            p.rect(x+3, y+size//3, size-6, size//2, 4)
+            p.rect(x+size//2, y, size//3, size//2, 4)
+            p.line(x+4, y+size//2, x+8, y+size//2, 14)
+            return
+        if meteor:
+            p.line(x+3, y-2, x+3, y-12, 10)
+            p.line(x+1, y-3, x+1, y-8, 9)
         p.rect(x, y+4, 7, 3, 8 if piercing else 2)
         p.rect(x+1, y+2, 5, 3, 9 if piercing else 4)
         p.rect(x+3, y, 2, 3, 10 if piercing else 4)
@@ -30,6 +39,44 @@ class Renderer:
             # Bright flames distinguish roof-piercing rain without changing hitboxes.
             p.line(x+1, y-2, x+1, y-5, 8)
             p.line(x+5, y-1, x+5, y-4, 10)
+
+    def friend(self, dog):
+        x, y = int(dog.x), int(dog.y)
+        # Face-relative pixels keep both breeds readable in either direction.
+        def rect(dx, dy, w, h, c):
+            p.rect(x+(dx if dog.facing > 0 else C.FRIEND_WIDTH-dx-w), y+dy, w, h, c)
+        leg = (dog.age//5) % 2
+        if dog.kind == 'poodle':
+            rect(2, 6, 12, 7, 6)
+            for dx, dy in ((1,5),(5,4),(9,5),(12,2),(15,3)):
+                rect(dx, dy, 5, 5, 7)
+            rect(11, 4, 3, 7, 6)
+            rect(16, 6, 4, 3, 7)
+            rect(17, 5, 1, 1, 0)
+            rect(19, 7, 1, 1, 0)
+            rect(3+leg, 12, 3, 4-leg, 7)
+            rect(11-leg, 12, 3, 3+leg, 7)
+            rect(1, 2, 3, 4, 7)
+            rect(13, 10, 4, 2, 13)
+        else:
+            # Dark outline and teal collar distinguish cream fur from food.
+            rect(1, 6, 17, 8, 0)
+            rect(2, 7, 14, 5, 14)
+            rect(10, 3, 8, 9, 0)
+            rect(11, 4, 6, 7, 7)
+            rect(10, 0, 3, 5, 0)
+            rect(15, 0, 3, 5, 0)
+            rect(11, 1, 1, 3, 14)
+            rect(16, 1, 1, 3, 14)
+            rect(16, 6, 1, 1, 0)
+            rect(17, 8, 3, 2, 7)
+            rect(19, 8, 1, 1, 0)
+            rect(12, 11, 5, 2, 12)
+            rect(3+leg, 13, 3, 3-leg, 7)
+            rect(12-leg, 13, 3, 2+leg, 7)
+            if dog.drift:
+                p.line(x-5, y+15, x-2, y+15, 7)
+                p.line(x+22, y+14, x+25, y+14, 6)
 
     def kibble(self, x, y, age):
         x, y = int(x), int(y)
@@ -156,6 +203,8 @@ class Renderer:
             kibble.draw(self)
         for hazard in game.hazards:
             hazard.draw(self)
+        for friend in game.friends:
+            friend.draw(self)
         for x, y, age in game.splashes:
             spread = C.SPLASH_TICKS-age
             p.line(x-spread, y-1, x+7+spread, y-1, 4)
@@ -176,8 +225,11 @@ class Renderer:
             self.heart(17 + i * 9, i < game.hp)
         p.text(52, 6, f'SCORE {game.score.score:04}', 10)
         p.text(123, 6, f'TIME 00:{game.wave.remaining:02}', 7)
-        p.text(209, 6, f'WAVE {game.wave.index+1}/{len(C.WAVES)}', 11)
+        p.text(184, 3, f'LEVEL {game.wave.level+1}/{len(C.LEVELS)}', 13)
+        p.text(184, 10, f'WAVE  {game.wave.index+1}/{len(C.WAVES)}', 11)
         if game.state == GameState.PLAYING:
+            if game.rain.warning or game.rain.shower:
+                self.center('POOP METEOR SHOWER!', 30, 10)
             if game.score.combo_count:
                 p.text(5, 21, f'FOOD {game.score.combo_count}/{C.KIBBLE_COMBO_COUNT}', 7)
             return
@@ -187,14 +239,15 @@ class Renderer:
         if state == GameState.TITLE:
             p.blt(78, 39, 0, 0, 0, 16, 16, C.TRANSPARENT_COLOR, scale=2)
             p.text(105, 44, 'POOP DOG', 10)
-            self.center('A LITTLE DOG. A BIG BAD SKY.', 66, 6)
+            self.center('3 LEVELS / 5 WAVES EACH', 66, 6)
             self.center(f'BEST SCORE {game.score.best:04}', 79, 7)
             self.center('[ START / SPACE ]', 94, 11)
         elif state == GameState.WAVE_CLEAR:
             self.center('WAVE CLEAR', 41, 10)
             self.center(f'CLEAR +{C.CLEAR_POINTS}', 57, 7)
             self.center('NO DAMAGE +500' if not game.wave.wave_damaged else 'KEEP GOING, LITTLE DOG!', 69, 11)
-            self.center(f'NEXT WAVE  {C.INTERVAL_SECONDS-game.interval_ticks//C.FPS}', 92, 7)
+            label = 'NEXT LEVEL' if game.wave.index == len(C.WAVES)-1 else 'NEXT WAVE'
+            self.center(f'{label}  {C.INTERVAL_SECONDS-game.interval_ticks//C.FPS}', 92, 7)
             p.rect(45, 111, 166, 10, 0)
             self.center('RED POOP PIERCES SHELTERS!', 114, 8)
         else:
