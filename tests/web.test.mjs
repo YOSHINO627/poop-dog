@@ -11,16 +11,17 @@ class Element {
   focus() {}
   async emit(name, event={}) { for (const fn of this.listeners[name] || []) await fn({preventDefault(){}, ...event}); }
 }
-function fixture(blocked=false, stored='0') {
-  const elements = Object.fromEntries(['best','action','game-status','sprite-status','screen','load','load-status','canvas','boot','sprite'].map(id => ['#'+id,new Element()]));
+function fixture(blocked=false, stored='0', search='') {
+  const elements = Object.fromEntries(['best','action','game-status','sprite-status','screen','load','load-status','canvas','boot','sprite','debug-panel','debug-go','debug-level','debug-wave'].map(id => ['#'+id,new Element()]));
   elements['.arcade'] = new Element();
   const buttons = ['left','right','jump'].map(action=>new Element(action));
   const data = new Map([['poop_dog_best_score', stored]]);
   const window = new Element();
+  window.location = {search};
   const document = new Element();
   Object.assign(document, {hidden:false, querySelector:q=>elements[q], querySelectorAll:q=>q==='[data-action]'?buttons:[],
     createElement:()=>({getContext:()=>({drawImage(){},getImageData:()=>({data:Uint8ClampedArray.from({length:4096},(_,i)=>i===3?0:255)})})})});
-  const context = vm.createContext({window,document,console,Set,Array,JSON,Number,String,Math,Uint8Array,DataView,
+  const context = vm.createContext({window,document,console,URLSearchParams,Set,Array,JSON,Number,String,Math,Uint8Array,DataView,
     localStorage:{getItem:k=>{if(blocked)throw Error('blocked');return data.get(k)},setItem:(k,v)=>{if(blocked)throw Error('blocked');data.set(k,v)}},
     URL:{createObjectURL:()=> 'blob:test',revokeObjectURL(){}},
     Image:class {naturalWidth=64;naturalHeight=16;async decode(){}},
@@ -64,4 +65,19 @@ test('invalid PNG keeps pending good sprite and reports error',async()=>{
   const f=fixture();await upload(f,png());await upload(f,png(32,32));assert.match(f.elements['#sprite-status'].textContent,/64/);
   assert.equal(JSON.parse(f.host.takeSprite()).length,16);
   await upload(f,{size:4,arrayBuffer:async()=>new Uint8Array(4).buffer});assert.equal(f.host.takeSprite(),'');
+});
+
+
+test('debug is opt-in, suppresses BEST and sends a one-shot target', async()=>{
+  const normal=fixture(); assert.equal(normal.host.debugEnabled,false);
+  assert.equal(poll(normal).debugTarget,null);
+  const f=fixture(false,'1230','?debug=1');
+  assert.equal(f.host.debugEnabled,true);
+  assert.equal(f.elements['#debug-panel'].hidden,false);
+  f.host.saveBest(99999);assert.equal(f.data.get('poop_dog_best_score'),'1230');
+  f.elements['#debug-level'].value='3'; f.elements['#debug-wave'].value='4';
+  await f.elements['#debug-go'].emit('click');
+  assert.deepEqual(poll(f).debugTarget,{level:3,wave:4});
+  assert.equal(poll(f).debugTarget,null);
+  assert.equal(fixture(false,'0','?debug=0').host.debugEnabled,false);
 });
