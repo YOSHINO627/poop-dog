@@ -33,13 +33,29 @@ class Renderer:
 
     def floral(self, x, y, age):
         x, y = int(x), int(y)
-        # Two curled streaks and pulsing sparks read as scented wind, not poop.
-        p.line(x, y+3, x+6, y+3, 13)
-        p.line(x+6, y+3, x+8, y+1, 13)
-        p.pset(x+7, y, 7)
-        p.line(x+2, y+7, x+8, y+7, 13)
-        p.line(x+8, y+7, x+9, y+5, 13)
-        p.line(x+1, y+4, x+5, y+4, 7)
+        # A rose-shaped spiral opens into narrowing wind rings below it.
+        p.line(x+3, y, x+6, y, 13)
+        p.line(x+1, y+1, x+2, y+1, 13)
+        p.line(x+7, y+1, x+8, y+1, 13)
+        p.line(x, y+2, x, y+3, 13)
+        p.line(x+9, y+2, x+9, y+3, 13)
+        p.line(x+1, y+4, x+7, y+4, 13)
+        p.line(x+8, y+3, x+8, y+4, 13)
+        p.line(x+3, y+1, x+6, y+1, 7)
+        p.line(x+2, y+2, x+2, y+3, 7)
+        p.line(x+3, y+3, x+6, y+3, 7)
+        p.line(x+6, y+2, x+7, y+2, 13)
+        p.pset(x+4, y+2, 13)
+        p.line(x+1, y+5, x+3, y+6, 13)
+        p.line(x+3, y+6, x+7, y+6, 13)
+        p.pset(x+8, y+5, 13)
+        p.line(x+3, y+7, x+4, y+8, 13)
+        p.line(x+4, y+8, x+6, y+8, 13)
+        p.pset(x+5, y+9, 13)
+        # Moving highlights suggest rotation without changing the pickup bounds.
+        shine = (age // 5) % 3
+        p.line(x+3+shine, y+5, x+4+shine, y+5, 7)
+        p.pset(x+6-shine, y+7, 7)
         if (age // 5) % 2:
             p.line(x-2, y, x, y, 7)
             p.line(x-1, y-1, x-1, y+1, 7)
