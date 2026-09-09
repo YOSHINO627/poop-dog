@@ -8,6 +8,7 @@ from .wave_manager import WaveManager
 from .score_manager import ScoreManager
 from .poop import create_hazard
 from .floral import Floral
+from .kibble import KibbleField
 
 class GameState(Enum):
     TITLE = auto()
@@ -31,6 +32,7 @@ class Game:
         self.hp = C.MAX_HP
         self.hazards = []
         self.florals = []
+        self.kibbles = KibbleField()
         self.floral_spawn_ticks = self.next_floral_delay()
         self.heal_feedback_ticks = 0
         self.splashes = []
@@ -95,12 +97,17 @@ class Game:
         # A lethal hit remains lethal; healing does not erase wave damage history.
         if self.hp > 0:
             self.update_florals()
+            self.score.tick_combo()
+            for _ in range(self.kibbles.update(self.rng, self.stage, self.camera, self.player)):
+                self.score.collect_kibble()
         if self.hp <= 0:
             self.state = GameState.GAME_OVER
         elif self.wave.complete:
             self.last_bonus = self.score.clear_wave(self.wave.wave_damaged)
             self.hazards.clear()
             self.florals.clear()
+            self.kibbles = KibbleField()
+            self.score.reset_combo()
             self.floral_spawn_ticks = self.next_floral_delay()
             self.heal_feedback_ticks = 0
             self.splashes.clear()

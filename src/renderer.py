@@ -31,6 +31,18 @@ class Renderer:
             p.line(x+1, y-2, x+1, y-5, 8)
             p.line(x+5, y-1, x+5, y-4, 10)
 
+    def kibble(self, x, y, age):
+        x, y = int(x), int(y)
+        # A flat golden pellet with a cream rim differs from stacked brown poop.
+        p.rect(x+1, y, 4, 6, 14)
+        p.rect(x, y+1, 6, 4, 14)
+        p.rect(x+1, y+1, 4, 3, 9)
+        p.line(x+1, y, x+4, y, 7)
+        p.pset(x+1, y+1, 7)
+        p.pset(x+3, y+3, 14)
+        if (age // 10) % 2 == 0:
+            p.pset(x+5, y-2, 10)
+
     def floral(self, x, y, age):
         x, y = int(x), int(y)
         # A rose-shaped spiral opens into narrowing wind rings below it.
@@ -140,6 +152,8 @@ class Renderer:
             self.object(o)
         for floral in game.florals:
             floral.draw(self)
+        for kibble in game.kibbles.items:
+            kibble.draw(self)
         for hazard in game.hazards:
             hazard.draw(self)
         for x, y, age in game.splashes:
@@ -150,6 +164,11 @@ class Renderer:
             p.blt(dog.x, dog.y, 0, dog.frame * 16, 0, 16 * dog.facing, 16, C.TRANSPARENT_COLOR)
         if game.heal_feedback_ticks:
             p.text(dog.x - 10, dog.y - 9, 'FLORAL +1', 13)
+        if game.score.delicious_ticks:
+            label_x = max(game.camera.x + 2, min(dog.x - 12, game.camera.x + C.WIDTH - 42))
+            label_y = max(20, dog.y - (19 if game.heal_feedback_ticks else 10))
+            p.text(label_x+1, label_y+1, 'Delicious!', 0)
+            p.text(label_x, label_y, 'Delicious!', 10)
         p.camera()
         p.rect(0, 0, C.WIDTH, 18, 0)
         p.text(5, 6, 'HP', 7)
@@ -159,6 +178,8 @@ class Renderer:
         p.text(123, 6, f'TIME 00:{game.wave.remaining:02}', 7)
         p.text(209, 6, f'WAVE {game.wave.index+1}/{len(C.WAVES)}', 11)
         if game.state == GameState.PLAYING:
+            if game.score.combo_count:
+                p.text(5, 21, f'FOOD {game.score.combo_count}/{C.KIBBLE_COMBO_COUNT}', 7)
             return
         p.rect(43, 27, 170, 82, 0)
         p.rectb(45, 29, 166, 78, 4)
