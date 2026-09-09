@@ -12,7 +12,7 @@ class App:
         pyxel.init(C.WIDTH, C.HEIGHT, title='POOP DOG', fps=C.FPS, quit_key=pyxel.KEY_NONE)
         pyxel.colors.from_list(C.PALETTE)
         self.bridge = Bridge()
-        self.game = Game(self.bridge)
+        self.game = Game(self.bridge, debug_enabled=self.bridge.debug_enabled)
         self.renderer = Renderer()
         self.previous_jump = False
         pyxel.run(self.update, self.draw)
@@ -28,7 +28,7 @@ class App:
         start = web.get('start', False) or pyxel.btnp(pyxel.KEY_RETURN) or jump
         if self.game.state != GameState.PLAYING and pyxel.btnp(pyxel.MOUSE_BUTTON_LEFT):
             start = True
-        self.game.update(int(right) - int(left), jump, start, web.get('paused', False))
+        self.game.update(int(right) - int(left), jump, start, web.get('paused', False), web.get('debugTarget'))
         sprite = self.bridge.sprite()
         if sprite is not None:
             self.renderer.apply_sprite(sprite)

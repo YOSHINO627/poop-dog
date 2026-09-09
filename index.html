@@ -24,6 +24,14 @@
     </div>
     <div class="game-bar"><div><span class="live-dot"></span><span id="game-status">READY WHEN YOU ARE</span></div><button id="action" disabled>START <span>↗</span></button></div>
   </section>
+  <section id="debug-panel" hidden style="padding:16px;border:1px solid #f06b65;margin:12px 0">
+    <strong>DEBUG MODE — BESTは保存されません</strong>
+    <p>ゲーム起動後、確認したいレベル・Waveを選択してください。切替時はHP・スコア・敵・アイテムを初期化します。RETRYも選択地点から再開します。</p>
+    <label>LEVEL <select id="debug-level"><option>1</option><option>2</option><option>3</option></select></label>
+    <label>WAVE <select id="debug-wave"><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option></select></label>
+    <button id="debug-go" disabled>選択地点から開始</button>
+    <a href="./">通常モードへ戻る</a>
+  </section>
   <section class="instructions"><div><span class="eyebrow">HOW TO PLAY</span><p>空からの落とし物をよけて、<br>全3レベル・各5Waveを生き残ろう。</p><small>赤いうんちはベンチも貫通！うす紫のフローラルで♥を1回復。カリカリは1個30点！5秒以内の間隔で5個連続取得すると Delicious! ＋100点。</small></div><div class="keys"><p><kbd>A</kbd><kbd>D</kbd><span>MOVE</span></p><p><kbd>SPACE</kbd><span>JUMP</span></p><small>矢印キー / W も使えます</small></div><div class="customize"><label for="sprite" class="upload">キャラクター画像を変更 <span>＋</span></label><input id="sprite" type="file" accept="image/png,.png"><small id="sprite-status" role="status">PNG · 64 × 16px · 4フレーム · 透過対応</small><a href="assets/default_player.png" download>デフォルト画像をダウンロード ↓</a></div></section>
   <p class="rotate">iPhoneは横向きでプレイしてください ↻</p>
   <footer><span>A LITTLE DOG. A BIG BAD SKY.</span><span>PYTHON + PYXEL</span></footer>

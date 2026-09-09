@@ -1,5 +1,7 @@
 // This module owns browser I/O only. Every gameplay decision lives in Python.
 const BEST_KEY = 'poop_dog_best_score';
+const debugEnabled = new URLSearchParams(window.location.search).get('debug') === '1';
+let debugTarget = null;
 // Pyxel's WASM input driver reads this global even with a custom touch controller.
 window._virtualGamepadStates = Array(10).fill(false);
 const bestLabel = document.querySelector('#best');
@@ -18,16 +20,18 @@ function loadBest() {
   return best;
 }
 function saveBest(score) {
+  if (debugEnabled) return;
   if (!Number.isSafeInteger(score) || score < 0) return;
   best = Math.max(loadBest(), score);
   bestLabel.textContent = String(best).padStart(4, '0');
   try { localStorage.setItem(BEST_KEY, String(best)); } catch { /* In-memory fallback. */ }
 }
 window.poopDog = {
-  loadBest, saveBest,
+  loadBest, saveBest, debugEnabled,
   pollInput() {
     const input = { left: actions.left.size > 0, right: actions.right.size > 0,
-      jump: actions.jump.size > 0, jumpPressed, start: startRequested, paused };
+      jump: actions.jump.size > 0, jumpPressed, start: startRequested, paused, debugTarget };
+    debugTarget = null;
     jumpPressed = startRequested = false;
     return JSON.stringify(input);
   },
@@ -35,12 +39,23 @@ window.poopDog = {
   publish(json) {
     const data = JSON.parse(json);
     state = data.state;
+    if (debugEnabled) document.querySelector("#debug-go").disabled = false;
     const canStart = ['TITLE', 'GAME_OVER', 'GAME_CLEAR'].includes(state);
     actionButton.disabled = !canStart;
     actionButton.innerHTML = (state === 'TITLE' ? 'START' : 'RETRY') + ' <span>↗</span>';
     statusLabel.textContent = state === 'PLAYING' ? `LEVEL ${data.level || 1} / 3 · WAVE ${data.wave} / 5 · STAY DRY, LITTLE DOG` : state.replaceAll('_', ' ');
   },
 };
+if (debugEnabled) {
+  document.querySelector('#debug-panel').hidden = false;
+  document.querySelector('#debug-go').addEventListener('click', () => {
+    clearInput();
+    debugTarget = {level: Number(document.querySelector('#debug-level').value),
+                   wave: Number(document.querySelector('#debug-wave').value)};
+    paused = false;
+    document.querySelector('#canvas').focus();
+  });
+}
 loadBest();
 window.addEventListener('storage', loadBest);
 
