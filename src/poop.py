@@ -35,7 +35,10 @@ class Poop(Hazard):
     def draw(self, renderer):
         renderer.poop(self.x, self.y, self.piercing)
 
-def create_hazard(rng, settings):
-    return Poop(rng.uniform(0, C.STAGE_WIDTH - C.POOP_SIZE),
+def create_hazard(rng, settings, stage=None):
+    piercing = rng.random() < settings.piercing_chance
+    x = (stage.spawn_x(rng, C.PIERCING_OBJECT_BIAS) if piercing and stage
+         else rng.uniform(0, C.STAGE_WIDTH - C.POOP_SIZE))
+    return Poop(x,
                 rng.uniform(settings.poop_min_speed, settings.poop_max_speed),
-                piercing=rng.random() < settings.piercing_chance)
+                piercing=piercing)

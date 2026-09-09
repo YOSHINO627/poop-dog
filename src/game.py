@@ -16,10 +16,11 @@ class GameState(Enum):
     GAME_CLEAR = auto()
 
 class Game:
-    def __init__(self, storage, rng=None, hazard_factory=create_hazard):
+    def __init__(self, storage, rng=None, hazard_factory=None):
         self.rng = rng or random.Random()
-        self.hazard_factory = hazard_factory
         self.stage = Stage()
+        self.hazard_factory = hazard_factory or (
+            lambda rng, settings: create_hazard(rng, settings, self.stage))
         self.score = ScoreManager(storage)
         self.reset()
         self.state = GameState.TITLE
