@@ -1,5 +1,6 @@
 import random
 import unittest
+from unittest.mock import patch
 from src import config as C
 from src.game import Game, GameState
 from src.player import Player
@@ -29,8 +30,10 @@ class GameTests(unittest.TestCase):
         # Roof-piercing generation and damage are tested separately below.
         self.game.hazard_factory = lambda rng, settings: Poop(126, settings.poop_min_speed)
         self.game.player.x = 126
-        for _ in range(ticks):
-            self.game.update()
+        # Base score excludes optional food points.
+        with patch("src.kibble.KibbleField.update", return_value=0):
+            for _ in range(ticks):
+                self.game.update()
 
     def test_title_start(self):
         self.assertEqual(self.game.state, GameState.TITLE)
