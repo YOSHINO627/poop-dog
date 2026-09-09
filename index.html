@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
   <meta name="theme-color" content="#181c28">
-  <meta name="description" content="小さなダックスと、空から降ってくる大問題。5つのWaveを生き残るピクセルアクション。">
+  <meta name="description" content="小さなダックスと、空から降ってくる大問題。3レベル・各5Waveを生き残るピクセルアクション。">
   <title>POOP DOG</title>
   <link rel="icon" href="assets/default_player.png" type="image/png">
   <link rel="stylesheet" href="style.css">
@@ -18,13 +18,13 @@
     <div class="screen-frame">
       <div class="screen" id="screen">
         <canvas id="canvas" width="256" height="144" tabindex="0" aria-label="ゲーム画面。A/Dで移動、Spaceでジャンプ"></canvas>
-        <div id="boot" class="boot"><div class="eyebrow">WATCH THE SKY.</div><h1>POOP DOG<span>.</span></h1><div class="dog-preview" aria-hidden="true"></div><p>ちいさなダックス、大きなサバイバル。</p><button id="load" class="primary">ゲームを起動 <span>↗</span></button><p id="load-status" role="status">5 WAVES · 3 HEARTS · ONE LITTLE DOG</p></div>
+        <div id="boot" class="boot"><div class="eyebrow">WATCH THE SKY.</div><h1>POOP DOG<span>.</span></h1><div class="dog-preview" aria-hidden="true"></div><p>ちいさなダックス、大きなサバイバル。</p><button id="load" class="primary">ゲームを起動 <span>↗</span></button><p id="load-status" role="status">3 LEVELS × 5 WAVES · 3 HEARTS · ONE LITTLE DOG</p></div>
       </div>
       <div class="touch-controls" aria-label="タッチ操作"><div class="directions"><button data-action="left" aria-label="左へ移動">◀<span>LEFT</span></button><button data-action="right" aria-label="右へ移動">▶<span>RIGHT</span></button></div><button data-action="jump" class="jump" aria-label="ジャンプ">↑<span>JUMP</span></button></div>
     </div>
     <div class="game-bar"><div><span class="live-dot"></span><span id="game-status">READY WHEN YOU ARE</span></div><button id="action" disabled>START <span>↗</span></button></div>
   </section>
-  <section class="instructions"><div><span class="eyebrow">HOW TO PLAY</span><p>空からの落とし物をよけて、<br>全5Waveを生き残ろう。</p><small>赤いうんちはベンチも貫通！うす紫のフローラルで♥を1回復。カリカリは1個30点！5秒以内の間隔で5個連続取得すると Delicious! ＋100点。</small></div><div class="keys"><p><kbd>A</kbd><kbd>D</kbd><span>MOVE</span></p><p><kbd>SPACE</kbd><span>JUMP</span></p><small>矢印キー / W も使えます</small></div><div class="customize"><label for="sprite" class="upload">キャラクター画像を変更 <span>＋</span></label><input id="sprite" type="file" accept="image/png,.png"><small id="sprite-status" role="status">PNG · 64 × 16px · 4フレーム · 透過対応</small><a href="assets/default_player.png" download>デフォルト画像をダウンロード ↓</a></div></section>
+  <section class="instructions"><div><span class="eyebrow">HOW TO PLAY</span><p>空からの落とし物をよけて、<br>全3レベル・各5Waveを生き残ろう。</p><small>赤いうんちはベンチも貫通！うす紫のフローラルで♥を1回復。カリカリは1個30点！5秒以内の間隔で5個連続取得すると Delicious! ＋100点。</small></div><div class="keys"><p><kbd>A</kbd><kbd>D</kbd><span>MOVE</span></p><p><kbd>SPACE</kbd><span>JUMP</span></p><small>矢印キー / W も使えます</small></div><div class="customize"><label for="sprite" class="upload">キャラクター画像を変更 <span>＋</span></label><input id="sprite" type="file" accept="image/png,.png"><small id="sprite-status" role="status">PNG · 64 × 16px · 4フレーム · 透過対応</small><a href="assets/default_player.png" download>デフォルト画像をダウンロード ↓</a></div></section>
   <p class="rotate">iPhoneは横向きでプレイしてください ↻</p>
   <footer><span>A LITTLE DOG. A BIG BAD SKY.</span><span>PYTHON + PYXEL</span></footer>
 </main>

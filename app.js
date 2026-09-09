@@ -38,7 +38,7 @@ window.poopDog = {
     const canStart = ['TITLE', 'GAME_OVER', 'GAME_CLEAR'].includes(state);
     actionButton.disabled = !canStart;
     actionButton.innerHTML = (state === 'TITLE' ? 'START' : 'RETRY') + ' <span>↗</span>';
-    statusLabel.textContent = state === 'PLAYING' ? `WAVE ${data.wave} / 5 · STAY DRY, LITTLE DOG` : state.replaceAll('_', ' ');
+    statusLabel.textContent = state === 'PLAYING' ? `LEVEL ${data.level || 1} / 3 · WAVE ${data.wave} / 5 · STAY DRY, LITTLE DOG` : state.replaceAll('_', ' ');
   },
 };
 loadBest();
