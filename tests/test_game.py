@@ -243,5 +243,40 @@ class GameTests(unittest.TestCase):
         self.assertEqual(g.hp, 2)
         self.assertEqual(g.hazards, [])
 
+class SpawnBiasTests(unittest.TestCase):
+    def test_strong_prefers_objects_but_also_open_ground(self):
+        from src.stage import Stage
+        from dataclasses import replace
+        stage, rng = Stage(), random.Random(732)
+        covered, _ = stage.spawn_regions()
+        settings = replace(C.WAVES[1], piercing_chance=1.0)
+        hazards = [create_hazard(rng, settings, stage) for _ in range(10000)]
+        hits = sum(any(a < h.x < b for a, b in covered) for h in hazards)
+        self.assertTrue(all(h.piercing for h in hazards))
+        self.assertTrue(0.68 < hits / len(hazards) < 0.72)
+        self.assertTrue(all(0 <= h.x <= C.STAGE_WIDTH-C.POOP_SIZE for h in hazards))
+
+    def test_normal_remains_uniform_and_empty_stage_is_safe(self):
+        from src.stage import Stage
+        stage, rng = Stage(), random.Random(912)
+        covered, _ = stage.spawn_regions()
+        hazards = [create_hazard(rng, C.WAVES[0], stage) for _ in range(10000)]
+        ratio = sum(any(a < h.x < b for a, b in covered) for h in hazards) / len(hazards)
+        expected = sum(b-a for a,b in covered) / (C.STAGE_WIDTH-C.POOP_SIZE)
+        self.assertAlmostEqual(ratio, expected, delta=0.02)
+        stage.objects = []
+        self.assertTrue(0 <= stage.spawn_x(rng, 1) <= C.STAGE_WIDTH-C.POOP_SIZE)
+        stage.objects = [{'kind':'platform', 'x':0, 'w':C.STAGE_WIDTH}]
+        self.assertTrue(0 <= stage.spawn_x(rng, 0) <= C.STAGE_WIDTH-C.POOP_SIZE)
+
+    def test_open_ground_never_overlaps_an_object(self):
+        from src.stage import Stage
+        from src.collision import horizontal_overlap
+        stage, rng = Stage(), random.Random(45)
+        for _ in range(500):
+            x = stage.spawn_x(rng, 0)
+            self.assertFalse(any(horizontal_overlap(x, C.POOP_SIZE, p)
+                                 for p in stage.platforms[:-1]))
+
 if __name__ == '__main__':
     unittest.main()
