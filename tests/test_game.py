@@ -278,5 +278,78 @@ class SpawnBiasTests(unittest.TestCase):
             self.assertFalse(any(horizontal_overlap(x, C.POOP_SIZE, p)
                                  for p in stage.platforms[:-1]))
 
+class FloralTests(unittest.TestCase):
+    def make_game(self):
+        g = Game(Storage(), random.Random(51))
+        g.update(start=True)
+        return g
+
+    def touch(self, g):
+        from src.floral import Floral
+        g.florals = [Floral(g.player.x, g.player.y+5)]
+        g.update()
+
+    def test_heal_one_cap_and_no_damage_history_reset(self):
+        g = self.make_game()
+        g.hp = 1
+        g.wave.wave_damaged = True
+        self.touch(g)
+        self.assertEqual(g.hp, 2)
+        self.assertTrue(g.wave.wave_damaged)
+        self.assertTrue(g.heal_feedback_ticks)
+        self.assertEqual(g.florals, [])
+        self.touch(g)
+        self.touch(g)
+        self.assertEqual(g.hp, 3)
+        self.assertEqual(g.score.score, 0)
+
+    def test_rare_spawn_in_view_and_item_cap(self):
+        from src.floral import Floral
+        g = self.make_game()
+        self.assertTrue(C.FLORAL_MIN_TICKS <= g.floral_spawn_ticks <= C.FLORAL_MAX_TICKS)
+        self.assertEqual(g.florals, [])
+        g.floral_spawn_ticks = 1
+        g.update()
+        self.assertEqual(len(g.florals), 1)
+        self.assertTrue(g.camera.x <= g.florals[0].x <= g.camera.x+C.WIDTH)
+        g.floral_spawn_ticks = 1
+        g.update()
+        self.assertEqual(len(g.florals), 1)
+        f = Floral(125)
+        for _ in range(250):
+            f.update()
+        self.assertFalse(f.alive)
+
+    def test_freeze_clear_and_retry(self):
+        from src.floral import Floral
+        g = self.make_game()
+        g.florals = [Floral(150)]
+        delay = g.floral_spawn_ticks
+        g.update(paused=True)
+        self.assertEqual(g.florals[0].age, 0)
+        self.assertEqual(g.floral_spawn_ticks, delay)
+        g.state = GameState.WAVE_CLEAR
+        g.update()
+        self.assertEqual(g.florals[0].age, 0)
+        g.state = GameState.PLAYING
+        g.wave.ticks = C.WAVE_SECONDS*C.FPS - 1
+        g.update()
+        self.assertEqual(g.florals, [])
+        g.florals = [Floral(150)]
+        g.heal_feedback_ticks = 20
+        g.reset()
+        self.assertEqual(g.florals, [])
+        self.assertEqual(g.heal_feedback_ticks, 0)
+
+    def test_floral_does_not_revive_lethal_hit(self):
+        from src.floral import Floral
+        g = self.make_game()
+        g.hp = 1
+        g.florals = [Floral(g.player.x, g.player.y+5)]
+        g.hazards = [Poop(g.player.x+2, 1, g.player.y+5)]
+        g.update()
+        self.assertEqual(g.hp, 0)
+        self.assertEqual(g.state, GameState.GAME_OVER)
+
 if __name__ == '__main__':
     unittest.main()
