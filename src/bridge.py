@@ -9,6 +9,10 @@ class Bridge:
         except ImportError:
             self.host = None
 
+    @property
+    def debug_enabled(self):
+        return bool(self.host.debugEnabled) if self.host else False
+
     def load_best(self):
         return int(self.host.loadBest()) if self.host else 0
 

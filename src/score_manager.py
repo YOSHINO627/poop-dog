@@ -1,7 +1,8 @@
 from . import config as C
 
 class ScoreManager:
-    def __init__(self, storage):
+    def __init__(self, storage, persist_best=True):
+        self.persist_best = persist_best
         self.storage = storage
         self.best = max(0, int(storage.load_best()))
         self.reset()
@@ -35,7 +36,7 @@ class ScoreManager:
 
     def add(self, points):
         self.score += points
-        if self.score > self.best:
+        if self.persist_best and self.score > self.best:
             self.best = self.score
             self.storage.save_best(self.best)
 

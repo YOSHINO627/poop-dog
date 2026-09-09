@@ -20,17 +20,21 @@ class GameState(Enum):
     GAME_CLEAR = auto()
 
 class Game:
-    def __init__(self, storage, rng=None, hazard_factory=None):
+    def __init__(self, storage, rng=None, hazard_factory=None, debug_enabled=False):
+        self.debug_enabled = debug_enabled
+        self.debug_start = (0, 0)
         self.rng = rng or random.Random()
         self.stage = Stage()
         self.hazard_factory = hazard_factory or (
             lambda rng, settings: create_hazard(rng, settings, self.stage))
-        self.score = ScoreManager(storage)
+        self.score = ScoreManager(storage, persist_best=not debug_enabled)
         self.reset()
         self.state = GameState.TITLE
 
     def reset(self):
         self.player, self.camera, self.wave = Player(), Camera(), WaveManager()
+        if self.debug_enabled:
+            self.wave.level, self.wave.index = self.debug_start
         self.hp = C.MAX_HP
         self.hazards = []
         self.florals = []
@@ -78,7 +82,14 @@ class Game:
                     self.heal_feedback_ticks = C.FLORAL_FEEDBACK_TICKS
         self.florals = [f for f in self.florals if f.alive]
 
-    def update(self, direction=0, jump=False, start=False, paused=False):
+    def update(self, direction=0, jump=False, start=False, paused=False, debug_target=None):
+        if self.debug_enabled and isinstance(debug_target, dict):
+            level, wave = debug_target.get("level"), debug_target.get("wave")
+            if (type(level) is int and type(wave) is int
+                    and 1 <= level <= len(C.LEVELS) and 1 <= wave <= len(C.WAVES)):
+                self.debug_start = (level-1, wave-1)
+                self.reset()
+                return
         if paused:
             return
         if self.state in (GameState.TITLE, GameState.GAME_OVER, GameState.GAME_CLEAR):

@@ -227,6 +227,8 @@ class Renderer:
         p.text(123, 6, f'TIME 00:{game.wave.remaining:02}', 7)
         p.text(184, 3, f'LEVEL {game.wave.level+1}/{len(C.LEVELS)}', 13)
         p.text(184, 10, f'WAVE  {game.wave.index+1}/{len(C.WAVES)}', 11)
+        if game.debug_enabled:
+            p.text(176, 21, 'DEBUG / NO BEST', 8)
         if game.state == GameState.PLAYING:
             if game.rain.warning or game.rain.shower:
                 self.center('POOP METEOR SHOWER!', 30, 10)
