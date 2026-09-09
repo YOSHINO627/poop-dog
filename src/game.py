@@ -7,6 +7,7 @@ from .camera import Camera
 from .wave_manager import WaveManager
 from .score_manager import ScoreManager
 from .poop import create_hazard
+from .floral import Floral
 
 class GameState(Enum):
     TITLE = auto()
@@ -29,11 +30,35 @@ class Game:
         self.player, self.camera, self.wave = Player(), Camera(), WaveManager()
         self.hp = C.MAX_HP
         self.hazards = []
+        self.florals = []
+        self.floral_spawn_ticks = self.next_floral_delay()
+        self.heal_feedback_ticks = 0
         self.splashes = []
         self.interval_ticks = 0
         self.last_bonus = 0
         self.score.reset()
         self.state = GameState.PLAYING
+
+    def next_floral_delay(self):
+        return self.rng.randint(C.FLORAL_MIN_TICKS, C.FLORAL_MAX_TICKS)
+
+    def update_florals(self):
+        self.heal_feedback_ticks = max(0, self.heal_feedback_ticks - 1)
+        self.floral_spawn_ticks -= 1
+        if self.floral_spawn_ticks <= 0:
+            if len(self.florals) < C.FLORAL_MAX_ITEMS:
+                margin = C.FLORAL_SIZE + C.FLORAL_DRIFT
+                self.florals.append(Floral(self.rng.uniform(
+                    self.camera.x + margin, self.camera.x + C.WIDTH - margin)))
+            self.floral_spawn_ticks = self.next_floral_delay()
+        for floral in self.florals:
+            floral.update()
+            if floral.alive and floral.hitbox.overlaps(self.player.hitbox):
+                floral.alive = False
+                if self.hp < C.MAX_HP:
+                    self.hp = min(C.MAX_HP, self.hp + C.FLORAL_HEAL)
+                    self.heal_feedback_ticks = C.FLORAL_FEEDBACK_TICKS
+        self.florals = [f for f in self.florals if f.alive]
 
     def update(self, direction=0, jump=False, start=False, paused=False):
         if paused:
@@ -67,11 +92,17 @@ class Game:
                     self.wave.wave_damaged = True
                     self.player.invincible = C.INVINCIBLE_TICKS
         self.hazards = [h for h in self.hazards if h.alive]
+        # A lethal hit remains lethal; healing does not erase wave damage history.
+        if self.hp > 0:
+            self.update_florals()
         if self.hp <= 0:
             self.state = GameState.GAME_OVER
         elif self.wave.complete:
             self.last_bonus = self.score.clear_wave(self.wave.wave_damaged)
             self.hazards.clear()
+            self.florals.clear()
+            self.floral_spawn_ticks = self.next_floral_delay()
+            self.heal_feedback_ticks = 0
             self.splashes.clear()
             self.interval_ticks = 0
             self.state = (GameState.GAME_CLEAR if self.wave.index == len(C.WAVES) - 1

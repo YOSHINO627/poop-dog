@@ -31,6 +31,22 @@ class Renderer:
             p.line(x+1, y-2, x+1, y-5, 8)
             p.line(x+5, y-1, x+5, y-4, 10)
 
+    def floral(self, x, y, age):
+        x, y = int(x), int(y)
+        # Two curled streaks and pulsing sparks read as scented wind, not poop.
+        p.line(x, y+3, x+6, y+3, 13)
+        p.line(x+6, y+3, x+8, y+1, 13)
+        p.pset(x+7, y, 7)
+        p.line(x+2, y+7, x+8, y+7, 13)
+        p.line(x+8, y+7, x+9, y+5, 13)
+        p.line(x+1, y+4, x+5, y+4, 7)
+        if (age // 5) % 2:
+            p.line(x-2, y, x, y, 7)
+            p.line(x-1, y-1, x-1, y+1, 7)
+        else:
+            p.line(x+9, y+10, x+11, y+10, 13)
+            p.line(x+10, y+9, x+10, y+11, 13)
+
     def scenery(self, camera):
         p.cls(12)
         # Distant scenery moves slower than the fenced play area.
@@ -106,6 +122,8 @@ class Renderer:
         self.scenery(game.camera.x)
         for o in game.stage.objects:
             self.object(o)
+        for floral in game.florals:
+            floral.draw(self)
         for hazard in game.hazards:
             hazard.draw(self)
         for x, y, age in game.splashes:
@@ -114,6 +132,8 @@ class Renderer:
         dog = game.player
         if not dog.invincible or (dog.invincible // C.BLINK_TICKS) % 2 == 0:
             p.blt(dog.x, dog.y, 0, dog.frame * 16, 0, 16 * dog.facing, 16, C.TRANSPARENT_COLOR)
+        if game.heal_feedback_ticks:
+            p.text(dog.x - 10, dog.y - 9, 'FLORAL +1', 13)
         p.camera()
         p.rect(0, 0, C.WIDTH, 18, 0)
         p.text(5, 6, 'HP', 7)
