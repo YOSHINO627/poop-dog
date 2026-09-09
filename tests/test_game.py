@@ -3,7 +3,7 @@ import unittest
 from src import config as C
 from src.game import Game, GameState
 from src.player import Player
-from src.poop import Poop
+from src.poop import Poop, create_hazard
 from src.platform import Platform
 from src.camera import Camera
 
@@ -25,7 +25,9 @@ class GameTests(unittest.TestCase):
         return self.game
 
     def safe_run(self, ticks):
-        # A real bench shields the dog. Keep the real hazard spawning active.
+        # Isolate score/timing assertions from random piercing damage.
+        # Roof-piercing generation and damage are tested separately below.
+        self.game.hazard_factory = lambda rng, settings: Poop(126, settings.poop_min_speed)
         self.game.player.x = 126
         for _ in range(ticks):
             self.game.update()
@@ -197,6 +199,49 @@ class GameTests(unittest.TestCase):
             g.update()
             self.assertLessEqual(len(g.hazards), g.wave.settings.max_poops)
             self.assertTrue(all(h.alive for h in g.hazards))
+
+    def test_piercing_mixture_starts_in_wave_two(self):
+        rng = random.Random(42)
+        for index, settings in enumerate(C.WAVES):
+            hazards = [create_hazard(rng, settings) for _ in range(200)]
+            count = sum(h.piercing for h in hazards)
+            if index == 0:
+                self.assertEqual(count, 0)
+            else:
+                self.assertGreater(count, 0)
+                self.assertLess(count, len(hazards))
+
+    def test_piercing_ignores_every_object_but_stops_at_ground(self):
+        for platform in self.game.stage.platforms[:-1]:
+            x = platform.x + platform.w / 2
+            y = platform.top_at(x + C.POOP_SIZE / 2) - C.POOP_SIZE - 1
+            strong = Poop(x, 2, y, piercing=True)
+            normal = Poop(x, 2, y)
+            strong.update([platform])
+            normal.update([platform])
+            self.assertTrue(strong.alive)
+            self.assertIsNone(strong.impact)
+            self.assertFalse(normal.alive)
+        strong = Poop(128, 3, C.GROUND_Y - C.POOP_SIZE - 1, piercing=True)
+        strong.update(self.game.stage.platforms)
+        self.assertFalse(strong.alive)
+        escaped = Poop(128, 3, C.HEIGHT + C.POOP_SIZE, piercing=True)
+        escaped.update([])
+        self.assertFalse(escaped.alive)
+
+    def test_piercing_hits_under_bench_and_respects_invincibility(self):
+        g = self.start()
+        g.player.x = 126
+        g.hazards = [Poop(128, 2, 90, piercing=True)]
+        for _ in range(12):
+            g.update()
+        self.assertEqual(g.hp, 2)
+        self.assertTrue(g.wave.wave_damaged)
+        self.assertTrue(g.player.invincible)
+        g.hazards = [Poop(128, 1, 114, piercing=True)]
+        g.update()
+        self.assertEqual(g.hp, 2)
+        self.assertEqual(g.hazards, [])
 
 if __name__ == '__main__':
     unittest.main()
