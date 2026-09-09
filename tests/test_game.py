@@ -31,7 +31,7 @@ class GameTests(unittest.TestCase):
         self.game.hazard_factory = lambda rng, settings: Poop(126, settings.poop_min_speed)
         self.game.player.x = 126
         # Base score excludes optional food points.
-        with patch("src.kibble.KibbleField.update", return_value=0):
+        with patch("src.kibble.KibbleField.update", return_value=0), patch("src.friend.Friend.update") :
             for _ in range(ticks):
                 self.game.update()
 
@@ -163,19 +163,19 @@ class GameTests(unittest.TestCase):
         self.assertEqual(g.wave.ticks, 0)
         self.assertEqual(g.hp, 2)
 
-    def test_perfect_clear_6500_and_retry(self):
+    def test_perfect_clear_19500_and_retry(self):
         g = self.start()
-        for wave in range(5):
+        for wave in range(15):
             self.safe_run(900)
             self.assertEqual(g.score.score, (wave+1)*1300)
-            if wave < 4:
+            if wave < 14:
                 for _ in range(90):
                     g.update()
         self.assertEqual(g.state, GameState.GAME_CLEAR)
-        self.assertEqual(g.score.score, 6500)
-        self.assertEqual(self.storage.best, 6500)
+        self.assertEqual(g.score.score, 19500)
+        self.assertEqual(self.storage.best, 19500)
         g.update(start=True)
-        self.assertEqual(g.score.best, 6500)
+        self.assertEqual(g.score.best, 19500)
         self.assertEqual(g.score.score, 0)
         self.assertEqual(g.hp, 3)
         self.assertEqual(g.hazards, [])
