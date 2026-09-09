@@ -24,11 +24,12 @@ class WaveConfig:
     poop_min_speed: float
     poop_max_speed: float
     max_poops: int
+    piercing_chance: float = 0.0
 
 WAVES = (
     WaveConfig(9, 1.0, 1.7, 45),
-    WaveConfig(7, 1.3, 2.1, 55),
-    WaveConfig(5, 1.6, 2.6, 65),
-    WaveConfig(4, 1.9, 3.1, 75),
-    WaveConfig(3, 2.2, 3.7, 90),
+    WaveConfig(7, 1.3, 2.1, 55, 0.15),
+    WaveConfig(5, 1.6, 2.6, 65, 0.20),
+    WaveConfig(4, 1.9, 3.1, 75, 0.25),
+    WaveConfig(3, 2.2, 3.7, 90, 0.30),
 )

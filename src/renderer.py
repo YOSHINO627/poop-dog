@@ -20,12 +20,16 @@ class Renderer:
     def center(self, text, y, color=7):
         p.text((C.WIDTH - len(text) * 4) // 2, y, text, color)
 
-    def poop(self, x, y):
+    def poop(self, x, y, piercing=False):
         x, y = int(x), int(y)
-        p.rect(x, y+4, 7, 3, 2)
-        p.rect(x+1, y+2, 5, 3, 4)
-        p.rect(x+3, y, 2, 3, 4)
-        p.pset(x+2, y+3, 14)
+        p.rect(x, y+4, 7, 3, 8 if piercing else 2)
+        p.rect(x+1, y+2, 5, 3, 9 if piercing else 4)
+        p.rect(x+3, y, 2, 3, 10 if piercing else 4)
+        p.pset(x+2, y+3, 7 if piercing else 14)
+        if piercing:
+            # Bright flames distinguish roof-piercing rain without changing hitboxes.
+            p.line(x+1, y-2, x+1, y-5, 8)
+            p.line(x+5, y-1, x+5, y-4, 10)
 
     def scenery(self, camera):
         p.cls(12)
@@ -134,6 +138,8 @@ class Renderer:
             self.center(f'CLEAR +{C.CLEAR_POINTS}', 57, 7)
             self.center('NO DAMAGE +500' if not game.wave.wave_damaged else 'KEEP GOING, LITTLE DOG!', 69, 11)
             self.center(f'NEXT WAVE  {C.INTERVAL_SECONDS-game.interval_ticks//C.FPS}', 92, 7)
+            p.rect(45, 111, 166, 10, 0)
+            self.center('RED POOP PIERCES SHELTERS!', 114, 8)
         else:
             self.center('GAME CLEAR' if state == GameState.GAME_CLEAR else 'GAME OVER', 42, 10 if game.hp else 8)
             self.center(f'SCORE      {game.score.score:04}', 60)
