@@ -4,6 +4,7 @@
   "src/camera.py",
   "src/collision.py",
   "src/config.py",
+  "src/floral.py",
   "src/game.py",
   "src/hazard.py",
   "src/platform.py",
