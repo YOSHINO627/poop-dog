@@ -7,6 +7,7 @@
   "src/floral.py",
   "src/game.py",
   "src/hazard.py",
+  "src/kibble.py",
   "src/platform.py",
   "src/player.py",
   "src/poop.py",
