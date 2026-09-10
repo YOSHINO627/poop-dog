@@ -9,6 +9,7 @@
   "src/game.py",
   "src/hazard.py",
   "src/kibble.py",
+  "src/legendary_stick.py",
   "src/platform.py",
   "src/player.py",
   "src/poop.py",
