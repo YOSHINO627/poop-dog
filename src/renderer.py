@@ -5,7 +5,8 @@ from . import config as C
 from .game import GameState
 
 class Renderer:
-    def __init__(self):
+    def __init__(self, web_controls=False):
+        self.web_controls = web_controls
         # Explicit indexed data avoids PNG loader alpha/palette reassignment.
         self.apply_sprite(json.loads(Path('assets/default_player.json').read_text()))
 
@@ -251,15 +252,16 @@ class Renderer:
             if game.score.combo_count:
                 p.text(5, 21, f'FOOD {game.score.combo_count}/{C.KIBBLE_COMBO_COUNT}', 7)
             return
-        p.rect(43, 27, 170, 82, 0)
-        p.rectb(45, 29, 166, 78, 4)
+        p.rect(43, 27, 170, 99, 0)
+        p.rectb(45, 29, 166, 95, 4)
         state = game.state
         if state == GameState.TITLE:
             p.blt(78, 39, 0, 0, 0, 16, 16, C.TRANSPARENT_COLOR, scale=2)
             p.text(105, 44, 'POOP DOG', 10)
             self.center('3 LEVELS / 5 WAVES EACH', 66, 6)
             self.center(f'BEST SCORE {game.score.best:04}', 79, 7)
-            self.center('[ START / SPACE ]', 94, 11)
+            if not self.web_controls:
+                self.center('[ START / SPACE ]', 101, 11)
         elif state == GameState.WAVE_CLEAR:
             self.center('WAVE CLEAR', 41, 10)
             self.center(f'CLEAR +{C.CLEAR_POINTS}', 57, 7)
@@ -272,4 +274,5 @@ class Renderer:
             self.center('GAME CLEAR' if state == GameState.GAME_CLEAR else 'GAME OVER', 42, 10 if game.hp else 8)
             self.center(f'SCORE      {game.score.score:04}', 60)
             self.center(f'BEST SCORE {game.score.best:04}', 73, 10)
-            self.center('[ RETRY / SPACE ]', 94, 11)
+            if not self.web_controls:
+                self.center('[ RETRY / SPACE ]', 101, 11)
