@@ -10,6 +10,7 @@ class Player:
         self.walk_ticks = 0
         self.moving = False
         self.invincible = 0
+        self.stick_ticks = 0
 
     @property
     def hitbox(self):
@@ -23,6 +24,7 @@ class Player:
 
     def update(self, direction, jump, platforms):
         self.invincible = max(0, self.invincible - 1)
+        self.stick_ticks = max(0, self.stick_ticks - 1)
         self.moving = direction != 0
         old_center = self.x + C.PLAYER_SIZE / 2
         old_bottom = self.y + C.PLAYER_SIZE

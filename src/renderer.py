@@ -139,6 +139,18 @@ class Renderer:
             p.line(x+9, y+10, x+11, y+10, 13)
             p.line(x+10, y+9, x+10, y+11, 13)
 
+    def legendary_stick(self, x, y, age, facing=1):
+        x, y = int(x), int(y)
+        def line(ax, ay, bx, by, color):
+            p.line(x + ax * facing, y + ay, x + bx * facing, y + by, color)
+        line(0, 7, 8, 3, 4)
+        line(0, 6, 8, 2, 14)
+        line(5, 4, 5, 1, 4)
+        line(1, 6, 3, 5, 9)
+        sx = 1 if (age // 5) % 2 else 8
+        line(sx-1, 0, sx+1, 0, 10)
+        line(sx, -1, sx, 1, 7)
+
     def scenery(self, camera):
         p.cls(12)
         # Distant scenery moves slower than the fenced play area.
@@ -216,6 +228,8 @@ class Renderer:
             self.object(o)
         for floral in game.florals:
             floral.draw(self)
+        for stick in game.sticks:
+            stick.draw(self)
         for kibble in game.kibbles.items:
             kibble.draw(self)
         for hazard in game.hazards:
@@ -226,8 +240,11 @@ class Renderer:
             spread = C.SPLASH_TICKS-age
             p.line(x-spread, y-1, x+7+spread, y-1, 4)
         dog = game.player
-        if not dog.invincible or (dog.invincible // C.BLINK_TICKS) % 2 == 0:
+        if dog.stick_ticks or not dog.invincible or (dog.invincible // C.BLINK_TICKS) % 2 == 0:
             p.blt(dog.x, dog.y, 0, dog.frame * 16, 0, 16 * dog.facing, 16, C.TRANSPARENT_COLOR)
+        if dog.stick_ticks:
+            mouth_x = dog.x + (14 if dog.facing > 0 else 1)
+            self.legendary_stick(mouth_x, dog.y + 2, dog.stick_ticks, dog.facing)
         if game.heal_feedback_ticks:
             p.text(dog.x - 10, dog.y - 9, 'FLORAL +1', 13)
         if game.score.delicious_ticks:
@@ -247,6 +264,9 @@ class Renderer:
         if game.debug_enabled:
             p.text(176, 21, 'DEBUG / NO BEST', 8)
         if game.state == GameState.PLAYING:
+            if dog.stick_ticks:
+                seconds = (dog.stick_ticks + C.FPS - 1) // C.FPS
+                self.center(f'LEGENDARY STICK {seconds}s', 29, 10)
             if game.rain.warning or game.rain.shower:
                 self.center('DANGER! POOP METEOR SHOWER!', 38, 8)
             if game.score.combo_count:
