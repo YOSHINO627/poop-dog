@@ -42,41 +42,57 @@ class Renderer:
 
     def friend(self, dog):
         x, y = int(dog.x), int(dog.y)
-        # Face-relative pixels keep both breeds readable in either direction.
-        def rect(dx, dy, w, h, c):
-            p.rect(x+(dx if dog.facing > 0 else C.FRIEND_WIDTH-dx-w), y+dy, w, h, c)
-        leg = (dog.age//5) % 2
+        # Hand-drawn reference-inspired pixels: no outline, only eyes/nose are dark.
+        # The poodle's rounded fringe and hanging ears stay distinct from corgi ears.
         if dog.kind == 'poodle':
-            rect(2, 6, 12, 7, 6)
-            for dx, dy in ((1,5),(5,4),(9,5),(12,2),(15,3)):
-                rect(dx, dy, 5, 5, 7)
-            rect(11, 4, 3, 7, 6)
-            rect(16, 6, 4, 3, 7)
-            rect(17, 5, 1, 1, 0)
-            rect(19, 7, 1, 1, 0)
-            rect(3+leg, 12, 3, 4-leg, 7)
-            rect(11-leg, 12, 3, 3+leg, 7)
-            rect(1, 2, 3, 4, 7)
-            rect(13, 10, 4, 2, 13)
+            rows = (
+                '...........77777',
+                '..........7777777',
+                '.........777777777',
+                '........67777777776',
+                '........67777777776',
+                '........67770770776',
+                '..77....67777777776',
+                '.7777....667770776',
+                '..77..77777777777',
+                '...7777777777dd7',
+                '..77777777777777',
+                '..777777777777777',
+                '...67777777777776',
+                '....667766777766',
+            )
         else:
-            # Dark outline and teal collar distinguish cream fur from food.
-            rect(1, 6, 17, 8, 0)
-            rect(2, 7, 14, 5, 14)
-            rect(10, 3, 8, 9, 0)
-            rect(11, 4, 6, 7, 7)
-            rect(10, 0, 3, 5, 0)
-            rect(15, 0, 3, 5, 0)
-            rect(11, 1, 1, 3, 14)
-            rect(16, 1, 1, 3, 14)
-            rect(16, 6, 1, 1, 0)
-            rect(17, 8, 3, 2, 7)
-            rect(19, 8, 1, 1, 0)
-            rect(12, 11, 5, 2, 12)
-            rect(3+leg, 13, 3, 3-leg, 7)
-            rect(12-leg, 13, 3, 2+leg, 7)
-            if dog.drift:
-                p.line(x-5, y+15, x-2, y+15, 7)
-                p.line(x+22, y+14, x+25, y+14, 6)
+            rows = (
+                '...........e....e',
+                '...........e7..7e',
+                '...........e77e7e',
+                '..77.......eeeeee',
+                '.7ee......eeeeeee7',
+                '.eee......eee0e777',
+                '..ee.....eeeeee7770',
+                '...eeeeeeeeeee77777',
+                '...eeeeeeeeee777777',
+                '..eeeeeeeeee7cc78',
+                '..eeeeeeeeeee777',
+                '..eeeeeeeeeee777',
+                '...e77777777777',
+                '....777.....777',
+            )
+        def pixel(dx, dy, color):
+            p.pset(x+(dx if dog.facing > 0 else C.FRIEND_WIDTH-1-dx), y+dy, color)
+        for dy, row in enumerate(rows):
+            for dx, color in enumerate(row):
+                if color != '.':
+                    pixel(dx, dy, int(color, 16))
+        # Two alternating short steps, with soft paws instead of black outlines.
+        step = (dog.age // 5) % 2
+        for dx in (4+step, 13-step):
+            for offset in range(2):
+                pixel(dx+offset, 14, 7)
+                pixel(dx+offset, 15 if dx == 4+step else 14+1-step, 7)
+        if dog.kind == 'corgi' and dog.drift:
+            p.line(x-5, y+15, x-2, y+15, 7)
+            p.line(x+22, y+14, x+25, y+14, 6)
 
     def kibble(self, x, y, age):
         x, y = int(x), int(y)
