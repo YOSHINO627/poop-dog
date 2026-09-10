@@ -40,3 +40,33 @@ body.expanded #action{padding:8px}
  body{overscroll-behavior:none}
 }
 @media(display-mode:standalone){.home-tip{display:none}}
+
+/* Prevent selection/callouts on the entire play surface, including button labels. */
+.arcade,.arcade *{user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;-webkit-user-drag:none}
+.arcade{touch-action:none}
+.touch-controls button>*{pointer-events:none}
+.dog-preview{flex-shrink:0;background-repeat:no-repeat}
+@media(orientation:landscape) and (max-height:600px){
+ .boot{gap:2px;padding:6px}
+ .boot .eyebrow{font-size:9px}
+ .boot h1{font-size:clamp(24px,9dvh,48px);margin:2px 0;letter-spacing:-2px}
+ .boot .dog-preview{width:48px;height:48px;background-size:192px 48px;margin:0;flex:none}
+ .boot p{font-size:10px;margin:2px;text-align:center}
+ .boot .primary{padding:8px 18px;margin:2px;min-width:180px;min-height:36px;flex:none}
+ .boot #load-status{font-size:8px;letter-spacing:0}
+}
+@media(pointer:coarse) and (orientation:landscape){
+ /* Expanded mode uses all available height and puts controls at the bottom. */
+ body.expanded .screen-frame,body.expanded.ready .screen-frame{display:flex;position:relative;align-items:center;justify-content:center;padding:0;gap:0;width:100%;height:100%;flex:1}
+ body.expanded .screen{width:min(100%,calc((100dvh - env(safe-area-inset-top) - env(safe-area-inset-bottom))*16/9));max-height:100%;aspect-ratio:16/9}
+ body.expanded .game-bar{position:absolute;top:calc(env(safe-area-inset-top) + 44px);right:calc(env(safe-area-inset-right) + 6px);height:36px;min-height:36px;border:0;background:#181c2880;border-radius:6px;padding:0 3px;z-index:4}
+ body.expanded .game-bar>div{display:none}
+ body.expanded #view-toggle{margin:0 4px 0 0;min-height:32px;padding:5px 8px}
+ body.expanded #action{padding:5px 8px}
+ body.expanded.ready .touch-controls{position:absolute;inset:0;display:flex;align-items:flex-end;justify-content:space-between;padding:0 12px 6px;pointer-events:none;z-index:3}
+ body.expanded .directions{align-self:flex-end;gap:8px}
+ body.expanded .touch-controls .jump{align-self:flex-end}
+ body.expanded .touch-controls button{width:56px;height:48px;min-width:48px;min-height:48px;background:#181c288c;border-color:#fff1d266;opacity:.8}
+ body.expanded .touch-controls .jump{width:64px;background:#a5cf72b3}
+ body.expanded .touch-controls button.pressed{opacity:1;background:#f8dc88}
+}

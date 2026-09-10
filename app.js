@@ -71,9 +71,11 @@ window.addEventListener('pagehide', clearInput);
 for (const button of document.querySelectorAll('[data-action]')) {
   const key = button.dataset.action;
   button.addEventListener('pointerdown', event => {
+    if (event.pointerType === 'touch') return; // Touch Events own iPhone fingers.
+    if (event.button !== undefined && event.button !== 0) return;
     event.preventDefault();
     paused = false;
-    button.setPointerCapture(event.pointerId);
+    try { button.setPointerCapture(event.pointerId); } catch { /* Global release remains available. */ }
     if (key === 'jump' && actions.jump.size === 0) jumpPressed = true;
     actions[key].add(event.pointerId);
     button.classList.add('pressed');
@@ -83,9 +85,52 @@ for (const button of document.querySelectorAll('[data-action]')) {
     button.classList.toggle('pressed', actions[key].size > 0);
   };
   for (const type of ['pointerup', 'pointercancel', 'lostpointercapture']) button.addEventListener(type, release);
-  button.addEventListener('contextmenu', event => event.preventDefault());
+  button.addEventListener('touchstart', event => {
+    event.preventDefault();
+    paused = false;
+    if (key === 'jump' && actions[key].size === 0) jumpPressed = true;
+    for (const touch of event.changedTouches) actions[key].add(`touch:${touch.identifier}`);
+    button.classList.add('pressed');
+  }, {passive:false});
+  button.addEventListener('touchmove', event => {
+    event.preventDefault();
+    const rect = button.getBoundingClientRect();
+    for (const touch of event.changedTouches) {
+      if (touch.clientX < rect.left || touch.clientX > rect.right ||
+          touch.clientY < rect.top || touch.clientY > rect.bottom) {
+        actions[key].delete(`touch:${touch.identifier}`);
+      }
+    }
+    button.classList.toggle('pressed', actions[key].size > 0);
+  }, {passive:false});
+  button.addEventListener('pointermove', event => {
+    if (event.pointerType !== 'touch' && event.buttons === 0) release(event);
+  });
+  button.addEventListener('contextmenu', event => {event.preventDefault();clearInput();});
+}
+// Release is captured at window level even if a finger ends outside its button.
+function releasePointer(event) {
+  for (const button of document.querySelectorAll('[data-action]')) {
+    actions[button.dataset.action].delete(event.pointerId);
+    button.classList.toggle('pressed', actions[button.dataset.action].size > 0);
+  }
+}
+for (const name of ['pointerup','pointercancel']) window.addEventListener(name, releasePointer, true);
+function reconcileTouches(event) {
+  const live = new Set(Array.from(event.touches, touch => `touch:${touch.identifier}`));
+  for (const button of document.querySelectorAll('[data-action]')) {
+    const held = actions[button.dataset.action];
+    for (const id of held) if (typeof id === 'string' && id.startsWith('touch:') && !live.has(id)) held.delete(id);
+    button.classList.toggle('pressed', held.size > 0);
+  }
+}
+for (const name of ['touchend','touchcancel']) window.addEventListener(name, reconcileTouches, {capture:true,passive:false});
+for (const name of ['resize','orientationchange']) window.addEventListener(name, clearInput);
+for (const name of ['contextmenu','selectstart','dragstart']) {
+  document.querySelector('.arcade').addEventListener(name, event => {event.preventDefault();clearInput();});
 }
 const screen = document.querySelector('#screen');
+for (const name of ['touchstart','touchmove']) screen.addEventListener(name, event => event.preventDefault(), {passive:false});
 window.addEventListener('error', event => {
   if (!runtime) return;
   statusLabel.textContent = '実行エラーが発生しました。ページを再読み込みしてください。';
