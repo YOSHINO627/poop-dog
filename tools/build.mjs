@@ -13,10 +13,10 @@ const assets = ['assets/default_player.png', 'assets/default_player.json', 'asse
 const manifest = ['main.py', ...py, ...assets];
 await writeFile(path.join(root, 'manifest.json'), JSON.stringify(manifest, null, 2) + '\n');
 // Explicit allowlist: no venv, credentials, tests, or server functions are deployed.
-for (const file of [...manifest, 'manifest.json', 'index.html', 'style.css', 'app.js']) {
+for (const file of [...manifest, 'manifest.json', 'index.html', 'style.css', 'app.js', 'editor.js']) {
   const destination = path.join(root, 'dist', file);
   await mkdir(path.dirname(destination), { recursive: true });
   await copyFile(path.join(root, file), destination);
 }
 if (!config.includes('0xFF00FF')) throw new Error('Review transparency palette');
-console.log(`Built dist/ (${manifest.length + 4} static files). Python executes in the browser only.`);
+console.log(`Built dist/ (${manifest.length + 5} static files). Python executes in the browser only.`);
