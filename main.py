@@ -13,7 +13,7 @@ class App:
         pyxel.colors.from_list(C.PALETTE)
         self.bridge = Bridge()
         self.game = Game(self.bridge, debug_enabled=self.bridge.debug_enabled)
-        self.renderer = Renderer()
+        self.renderer = Renderer(web_controls=self.bridge.host is not None)
         self.previous_jump = False
         pyxel.run(self.update, self.draw)
 
