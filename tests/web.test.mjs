@@ -9,17 +9,18 @@ class Element {
   addEventListener(name, fn) { (this.listeners[name] ||= []).push(fn); }
   setPointerCapture() {}
   focus() {}
+  setAttribute(name,value) { this[name]=value; }
   async emit(name, event={}) { for (const fn of this.listeners[name] || []) await fn({preventDefault(){}, ...event}); }
 }
 function fixture(blocked=false, stored='0', search='') {
-  const elements = Object.fromEntries(['best','action','game-status','sprite-status','screen','load','load-status','canvas','boot','sprite','debug-panel','debug-go','debug-level','debug-wave'].map(id => ['#'+id,new Element()]));
+  const elements = Object.fromEntries(['best','action','game-status','sprite-status','screen','load','load-status','canvas','boot','sprite','debug-panel','debug-go','debug-level','debug-wave','view-toggle'].map(id => ['#'+id,new Element()]));
   elements['.arcade'] = new Element();
   const buttons = ['left','right','jump'].map(action=>new Element(action));
   const data = new Map([['poop_dog_best_score', stored]]);
   const window = new Element();
   window.location = {search};
   const document = new Element();
-  Object.assign(document, {hidden:false, querySelector:q=>elements[q], querySelectorAll:q=>q==='[data-action]'?buttons:[],
+  Object.assign(document, {body:new Element(),hidden:false, querySelector:q=>elements[q], querySelectorAll:q=>q==='[data-action]'?buttons:[],
     createElement:()=>({getContext:()=>({drawImage(){},getImageData:()=>({data:Uint8ClampedArray.from({length:4096},(_,i)=>i===3?0:255)})})})});
   const context = vm.createContext({window,document,console,URLSearchParams,Set,Array,JSON,Number,String,Math,Uint8Array,DataView,
     localStorage:{getItem:k=>{if(blocked)throw Error('blocked');return data.get(k)},setItem:(k,v)=>{if(blocked)throw Error('blocked');data.set(k,v)}},
@@ -80,4 +81,27 @@ test('debug is opt-in, suppresses BEST and sends a one-shot target', async()=>{
   assert.deepEqual(poll(f).debugTarget,{level:3,wave:4});
   assert.equal(poll(f).debugTarget,null);
   assert.equal(fixture(false,'0','?debug=0').host.debugEnabled,false);
+});
+
+
+test('expanded fallback toggles without resetting game or BEST', async()=>{
+ const f=fixture(false,'1230');
+ await f.buttons[1].emit('pointerdown',{pointerId:1});
+ await f.elements['#view-toggle'].emit('click');
+ assert.equal(f.elements['#view-toggle']['aria-pressed'],'true');
+ assert.equal(poll(f).right,false);assert.equal(poll(f).start,false);
+ assert.equal(f.data.get('poop_dog_best_score'),'1230');
+ await f.elements['#view-toggle'].emit('click');
+ assert.equal(f.elements['#view-toggle']['aria-pressed'],'false');
+});
+test('fullscreen rejection falls back and native exit restores normal mode',async()=>{
+ const f=fixture();
+ f.elements['.arcade'].requestFullscreen=async()=>{throw Error('unsupported')};
+ await f.elements['#view-toggle'].emit('click');
+ assert.equal(f.elements['#view-toggle']['aria-pressed'],'true');
+ await f.elements['#view-toggle'].emit('click');
+ f.elements['.arcade'].requestFullscreen=async()=>{f.document.fullscreenElement=f.elements['.arcade']};
+ await f.elements['#view-toggle'].emit('click');
+ f.document.fullscreenElement=null;await f.document.emit('fullscreenchange');
+ assert.equal(f.elements['#view-toggle']['aria-pressed'],'false');
 });
