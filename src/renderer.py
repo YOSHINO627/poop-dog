@@ -7,6 +7,7 @@ from .game import GameState
 class Renderer:
     def __init__(self, web_controls=False):
         self.web_controls = web_controls
+        self.clear_started = None
         # Explicit indexed data avoids PNG loader alpha/palette reassignment.
         self.apply_sprite(json.loads(Path('assets/default_player.json').read_text()))
 
@@ -222,7 +223,60 @@ class Renderer:
         p.rect(x+2, 10, 3, 1, color)
         p.pset(x+3, 11, color)
 
+    def celebration(self, age):
+        # Deterministic screen-space confetti never consumes gameplay randomness.
+        for i in range(44):
+            x = (i * 59 + (age // 3) * (1 if i % 2 else -1)) % C.WIDTH
+            y = 18 + (i * 23 + age * (1 + i % 2) // 3) % (C.HEIGHT - 18)
+            color = (10, 8, 13, 11, 7)[i % 5]
+            p.rect(x, y, 2 if (age // 6 + i) % 2 else 1, 2, color)
+
+    def trophy(self, age):
+        x, y = 147, 44
+        p.rectb(x-5, y+2, 8, 10, 9)
+        p.rectb(x+13, y+2, 8, 10, 9)
+        p.rect(x, y, 16, 11, 10)
+        p.rect(x+2, y+11, 12, 3, 9)
+        p.rect(x+5, y+14, 6, 3, 10)
+        p.rect(x+7, y+17, 2, 4, 9)
+        p.rect(x+3, y+20, 10, 2, 10)
+        p.line(x+2, y+2, x+2, y+8, 7)
+        p.rect(x-9, y+22, 34, 11, 4)
+        p.rect(x-8, y+23, 32, 9, 7)
+        # Built-in Pyxel text is ASCII: draw a tiny Japanese nameplate explicitly.
+        glyphs = (
+            ('0011000','0000000','0111110','0000100','0001000','0011000','0100100','1000111'),  # え
+            ('0000100','0001000','0010000','0100000','0100000','0010000','0001000','0000100'),  # く
+            ('0010000','1110010','0010101','0111001','1010001','0010001','0010011','0010000'),  # れ
+            ('0010000','1111110','0010000','0011110','0110101','1011001','1010001','0100110'),  # あ
+        )
+        for n, glyph in enumerate(glyphs):
+            for gy, row in enumerate(glyph):
+                for gx, bit in enumerate(row):
+                    if bit == '1':
+                        p.pset(x-7+n*8+gx, y+23+gy, 2)
+        if (age // 8) % 2 == 0:
+            p.line(x+21, y-3, x+21, y+1, 7)
+            p.line(x+19, y-1, x+23, y-1, 7)
+
+    def clear_result(self, game, age):
+        self.center('GAME CLEAR!', 34, 10)
+        # Use the selected player sprite, including uploaded character images.
+        p.elli(84, 43, 42, 32, 12)
+        p.line(88, 74, 122, 74, 10)
+        p.blt(96, 52, 0, 0, 0, 16, 16, C.TRANSPARENT_COLOR, scale=2)
+        self.trophy(age)
+        self.center(f'SCORE      {game.score.score:04}', 78, 7)
+        self.center(f'BEST SCORE {game.score.best:04}', 85, 10)
+        if not self.web_controls:
+            self.center('[ RETRY / SPACE ]', 101, 11)
+
     def draw(self, game):
+        if game.state == GameState.GAME_CLEAR:
+            if self.clear_started is None:
+                self.clear_started = p.frame_count
+        else:
+            self.clear_started = None
         self.scenery(game.camera.x)
         for o in game.stage.objects:
             self.object(o)
@@ -272,6 +326,8 @@ class Renderer:
             if game.score.combo_count:
                 p.text(5, 21, f'FOOD {game.score.combo_count}/{C.KIBBLE_COMBO_COUNT}', 7)
             return
+        if game.state == GameState.GAME_CLEAR:
+            self.celebration(p.frame_count - self.clear_started)
         p.rect(43, 27, 170, 99, 0)
         p.rectb(45, 29, 166, 95, 4)
         state = game.state
@@ -290,6 +346,8 @@ class Renderer:
             self.center(f'{label}  {C.INTERVAL_SECONDS-game.interval_ticks//C.FPS}', 92, 7)
             p.rect(45, 111, 166, 10, 0)
             self.center('RED POOP PIERCES SHELTERS!', 114, 8)
+        elif state == GameState.GAME_CLEAR:
+            self.clear_result(game, p.frame_count - self.clear_started)
         else:
             self.center('GAME CLEAR' if state == GameState.GAME_CLEAR else 'GAME OVER', 42, 10 if game.hp else 8)
             self.center(f'SCORE      {game.score.score:04}', 60)
