@@ -21,6 +21,7 @@ class Renderer:
                        or any(c not in '0123456789abcdef' for c in row) for row in rows)):
             return False
         p.images[0].set(0, 0, rows)
+        self.current_rows = rows
         return True
 
     def set_custom_sprite(self, rows):

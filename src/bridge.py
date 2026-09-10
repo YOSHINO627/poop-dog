@@ -27,6 +27,10 @@ class Bridge:
         value = self.host.takeSprite() if self.host else ''
         return json.loads(str(value)) if value else None
 
+    def publish_sprite(self, rows):
+        if self.host:
+            self.host.setCurrentSprite(json.dumps(rows))
+
     def publish(self, game):
         if self.host:
             self.host.publish(json.dumps({
