@@ -232,7 +232,7 @@ class Renderer:
             p.rect(x, y, 2 if (age // 6 + i) % 2 else 1, 2, color)
 
     def trophy(self, age):
-        x, y = 147, 44
+        x, y = 140, 44
         p.rectb(x-5, y+2, 8, 10, 9)
         p.rectb(x+13, y+2, 8, 10, 9)
         p.rect(x, y, 16, 11, 10)
@@ -245,16 +245,16 @@ class Renderer:
         p.rect(x-8, y+23, 32, 9, 7)
         # Built-in Pyxel text is ASCII: draw a tiny Japanese nameplate explicitly.
         glyphs = (
-            ('0011000','0000000','0111110','0000100','0001000','0011000','0100100','1000111'),  # え
-            ('0000100','0001000','0010000','0100000','0100000','0010000','0001000','0000100'),  # く
-            ('0010000','1110010','0010101','0111001','1010001','0010001','0010011','0010000'),  # れ
-            ('0010000','1111110','0010000','0011110','0110101','1011001','1010001','0100110'),  # あ
+            ('001100','000000','011110','000100','001100','010010','100011'),  # え
+            ('000010','000100','001000','010000','001000','000100','000010'),  # く
+            ('010000','110010','010101','011001','110001','010001','010011'),  # れ
+            ('001000','111110','001000','011110','101101','101001','010110'),  # あ
         )
         for n, glyph in enumerate(glyphs):
             for gy, row in enumerate(glyph):
                 for gx, bit in enumerate(row):
                     if bit == '1':
-                        p.pset(x-7+n*8+gx, y+23+gy, 2)
+                        p.pset(x-5+n*7+gx, y+24+gy, 2)
         if (age // 8) % 2 == 0:
             p.line(x+21, y-3, x+21, y+1, 7)
             p.line(x+19, y-1, x+23, y-1, 7)
@@ -262,9 +262,9 @@ class Renderer:
     def clear_result(self, game, age):
         self.center('GAME CLEAR!', 34, 10)
         # Use the selected player sprite, including uploaded character images.
-        p.elli(84, 43, 42, 32, 12)
-        p.line(88, 74, 122, 74, 10)
-        p.blt(96, 52, 0, 0, 0, 16, 16, C.TRANSPARENT_COLOR, scale=2)
+        p.elli(89, 43, 42, 32, 12)
+        p.line(93, 74, 127, 74, 10)
+        p.blt(101, 52, 0, 0, 0, 16, 16, C.TRANSPARENT_COLOR, scale=2)
         self.trophy(age)
         self.center(f'SCORE      {game.score.score:04}', 78, 7)
         self.center(f'BEST SCORE {game.score.best:04}', 85, 10)
