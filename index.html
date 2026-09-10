@@ -22,6 +22,9 @@
       <div class="screen" id="screen">
         <canvas id="canvas" width="256" height="144" tabindex="0" aria-label="ゲーム画面。A/Dで移動、Spaceでジャンプ"></canvas>
         <button id="game-action" type="button" hidden disabled>START</button>
+        <button id="dog-select" type="button" hidden aria-label="犬種を選ぶ">DOG</button>
+        <button id="dog-prev" class="dog-nav" type="button" hidden aria-label="前の犬種">◀</button>
+        <button id="dog-next" class="dog-nav" type="button" hidden aria-label="次の犬種">▶</button>
         <div id="boot" class="boot"><div class="eyebrow">WATCH THE SKY.</div><h1>POOP DOG<span>.</span></h1><div class="dog-preview" aria-hidden="true"></div><p>ちいさなダックス、大きなサバイバル。</p><button id="load" class="primary">ゲームを起動 <span>↗</span></button><p id="load-status" role="status">3 LEVELS × 5 WAVES · 3 HEARTS · ONE LITTLE DOG</p></div>
       </div>
       <div class="touch-controls" aria-label="タッチ操作"><div class="directions"><button data-action="left" aria-label="左へ移動">◀<span>LEFT</span></button><button data-action="right" aria-label="右へ移動">▶<span>RIGHT</span></button></div><button data-action="jump" class="jump" aria-label="ジャンプ"><svg class="paw" viewBox="0 0 76 64" aria-hidden="true"><g fill="currentColor" stroke="#fff1d288" stroke-width="1"><ellipse cx="11" cy="24" rx="7" ry="10" transform="rotate(-25 11 24)"/><ellipse cx="27" cy="12" rx="8" ry="11" transform="rotate(-10 27 12)"/><ellipse cx="49" cy="12" rx="8" ry="11" transform="rotate(10 49 12)"/><ellipse cx="65" cy="24" rx="7" ry="10" transform="rotate(25 65 24)"/><path d="M18 44C20 37 25 34 28 29C33 22 43 22 48 29C51 34 56 37 58 44C64 58 50 62 43 58C40 56 36 56 33 58C24 62 12 58 18 44Z"/></g></svg><span>JUMP</span></button></div>

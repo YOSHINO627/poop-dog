@@ -98,6 +98,13 @@ body.expanded #action{padding:8px}
 #game-action::after{content:"";position:absolute;left:0;right:0;top:50%;transform:translateY(-50%);height:100%;min-height:44px}
 /* Leave ten internal pixels below the final BEST SCORE line. */
 #game-action.retry{top:69.4444%;width:32%;height:12.5%}
+#game-action.selecting{top:72.2222%;width:32%;height:12.5%}
+#dog-select,.dog-nav{position:absolute;z-index:2;border:1px solid #a5cf72;background:#181c28;color:#a5cf72;border-radius:4px;padding:0;font:700 clamp(10px,1.5vw,16px) monospace;touch-action:manipulation}
+#dog-select{left:71%;top:22%;width:10%;height:10%}
+.dog-nav{top:38%;width:12%;height:20%;font-size:18px}
+#dog-prev{left:22%}#dog-next{right:22%}
+#dog-select[hidden],.dog-nav[hidden]{display:none}
+#dog-select::after,.dog-nav::after{content:"";position:absolute;inset:50% 0 auto;transform:translateY(-50%);height:100%;min-height:44px}
 /* Transparent paw silhouette; retain the whole original rectangular touch target. */
 .touch-controls button.jump{position:relative;background:transparent!important;border:0!important;box-shadow:none;color:#a5cf72b3;border-radius:0}
 .touch-controls .jump .paw{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}

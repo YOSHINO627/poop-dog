@@ -28,10 +28,11 @@ class App:
         start = web.get('start', False) or pyxel.btnp(pyxel.KEY_RETURN) or jump
         if self.game.state != GameState.PLAYING and pyxel.btnp(pyxel.MOUSE_BUTTON_LEFT):
             start = True
-        self.game.update(int(right) - int(left), jump, start, web.get('paused', False), web.get('debugTarget'))
+        self.game.update(int(right) - int(left), jump, start, web.get('paused', False), web.get('debugTarget'),
+                         pyxel.btnp(pyxel.KEY_D) or web.get('dogSelect', False), web.get('selectStep', 0))
         sprite = self.bridge.sprite()
         if sprite is not None:
-            self.renderer.apply_sprite(sprite)
+            self.renderer.set_custom_sprite(sprite)
         self.bridge.publish(self.game)
 
     def draw(self):

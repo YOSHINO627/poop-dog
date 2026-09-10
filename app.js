@@ -6,6 +6,10 @@ let debugTarget = null;
 window._virtualGamepadStates = Array(10).fill(false);
 const bestLabel = document.querySelector('#best');
 const actionButton = document.querySelector('#game-action');
+const dogButton = document.querySelector('#dog-select');
+const dogPrev = document.querySelector('#dog-prev');
+const dogNext = document.querySelector('#dog-next');
+let dogRequested = false, selectStep = 0;
 const statusLabel = document.querySelector('#game-status');
 const spriteStatus = document.querySelector('#sprite-status');
 const actions = { left: new Set(), right: new Set(), jump: new Set() };
@@ -30,7 +34,9 @@ window.poopDog = {
   loadBest, saveBest, debugEnabled,
   pollInput() {
     const input = { left: actions.left.size > 0, right: actions.right.size > 0,
-      jump: actions.jump.size > 0, jumpPressed, start: startRequested, paused, debugTarget };
+      jump: actions.jump.size > 0, jumpPressed, start: startRequested, paused, debugTarget,
+      dogSelect: dogRequested, selectStep };
+    dogRequested = false; selectStep = 0;
     debugTarget = null;
     jumpPressed = startRequested = false;
     return JSON.stringify(input);
@@ -41,9 +47,13 @@ window.poopDog = {
     state = data.state;
     if (debugEnabled) document.querySelector("#debug-go").disabled = false;
     const canStart = ['TITLE', 'GAME_OVER', 'GAME_CLEAR'].includes(state);
-    actionButton.disabled = !canStart;
-    actionButton.hidden = !canStart;
-    actionButton.textContent = state === 'TITLE' ? 'START' : 'RETRY';
+    const selecting = state === 'DOG_SELECT';
+    dogButton.hidden = !canStart;
+    dogPrev.hidden = dogNext.hidden = !selecting;
+    actionButton.disabled = !(canStart || selecting);
+    actionButton.hidden = !(canStart || selecting);
+    actionButton.textContent = selecting ? 'OK' : state === 'TITLE' ? 'START' : 'RETRY';
+    actionButton.classList.toggle('selecting', selecting);
     actionButton.classList.toggle('retry', state === 'GAME_OVER' || state === 'GAME_CLEAR');
     statusLabel.textContent = state === 'PLAYING' ? `LEVEL ${data.level || 1} / 3 · WAVE ${data.wave} / 5 · STAY DRY, LITTLE DOG` : state.replaceAll('_', ' ');
   },
@@ -62,6 +72,7 @@ loadBest();
 window.addEventListener('storage', loadBest);
 
 function clearInput() {
+  dogRequested = false; selectStep = 0;
   Object.values(actions).forEach(set => set.clear());
   document.querySelectorAll('.pressed').forEach(button => button.classList.remove('pressed'));
   jumpPressed = startRequested = false;
@@ -155,6 +166,14 @@ window.addEventListener('keydown', event => {
   if (runtime && ['ArrowLeft', 'ArrowRight', 'ArrowUp', 'Space'].includes(event.code)) event.preventDefault();
 });
 actionButton.addEventListener('click', () => { startRequested = true; paused = false; document.querySelector('#canvas').focus(); });
+dogButton.addEventListener('click', () => {
+  clearInput(); dogRequested = true; paused = false; document.querySelector('#canvas').focus();
+});
+for (const [button, step] of [[dogPrev, -1], [dogNext, 1]]) {
+  button.addEventListener('click', () => {
+    selectStep = step; paused = false; document.querySelector('#canvas').focus();
+  });
+}
 
 async function fetchFile(path) {
   const response = await fetch(path);
