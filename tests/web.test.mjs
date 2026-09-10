@@ -13,7 +13,7 @@ class Element {
   async emit(name, event={}) { for (const fn of this.listeners[name] || []) await fn({preventDefault(){}, ...event}); }
 }
 function fixture(blocked=false, stored='0', search='') {
-  const elements = Object.fromEntries(['best','action','game-status','sprite-status','screen','load','load-status','canvas','boot','sprite','debug-panel','debug-go','debug-level','debug-wave','view-toggle'].map(id => ['#'+id,new Element()]));
+  const elements = Object.fromEntries(['best','game-action','game-status','sprite-status','screen','load','load-status','canvas','boot','sprite','debug-panel','debug-go','debug-level','debug-wave','view-toggle'].map(id => ['#'+id,new Element()]));
   elements['.arcade'] = new Element();
   const buttons = ['left','right','jump'].map(action=>new Element(action));
   const data = new Map([['poop_dog_best_score', stored]]);
@@ -136,4 +136,23 @@ test('dragging a finger off a key releases only that finger',async()=>{
  await right.emit('touchmove',{changedTouches:[{identifier:1,clientX:100,clientY:20}]});
  assert.equal(poll(f).right,true);
  await f.window.emit('touchend',{touches:[]});assert.equal(poll(f).right,false);
+});
+
+
+test('launch controls do not cancel touch clicks and in-screen start is one-shot',async()=>{
+ const f=fixture();
+ // The screen ancestor must not cancel a launch button touch and its synthetic click.
+ let cancelled=false;
+ await f.elements['#screen'].emit('touchstart',{preventDefault(){cancelled=true}});
+ assert.equal(cancelled,false);
+ await f.elements['#canvas'].emit('touchstart',{preventDefault(){cancelled=true}});
+ assert.equal(cancelled,true);
+ f.host.publish(JSON.stringify({state:'TITLE'}));
+ assert.equal(f.elements['#game-action'].hidden,false);
+ await f.elements['#game-action'].emit('click');
+ assert.equal(poll(f).start,true);assert.equal(poll(f).start,false);
+ f.host.publish(JSON.stringify({state:'PLAYING',level:1,wave:1}));
+ assert.equal(f.elements['#game-action'].hidden,true);
+ f.host.publish(JSON.stringify({state:'GAME_OVER'}));
+ assert.equal(f.elements['#game-action'].hidden,false);
 });
