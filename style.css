@@ -111,3 +111,16 @@ body.expanded #action{padding:8px}
 .touch-controls .jump .paw *{pointer-events:none}
 .touch-controls .jump span{position:absolute;left:0;right:0;top:67%;text-align:center;color:#181c28;font-size:9px;font-weight:700;letter-spacing:.5px}
 .touch-controls button.jump.pressed{color:#f8dc88;opacity:1}
+
+#sprite-editor{margin:24px 0;padding:20px;border:1px solid #647c85;background:#181c28;color:#fff1d2}
+#sprite-editor summary{cursor:pointer;font-size:20px}#sprite-editor p{font-size:14px;line-height:1.6}
+#sprite-editor button,#sprite-editor select{padding:8px 12px;border:1px solid #647c85;background:#283449;color:#fff1d2;border-radius:4px;font-size:14px;cursor:pointer}
+#sprite-editor button:disabled{opacity:.4}#sprite-editor button:focus-visible{outline:2px solid #f8dc88}
+.edit-toolbar{display:flex;gap:10px;flex-wrap:wrap;margin:14px 0;align-items:center}
+#edit-palette{display:flex;gap:5px;flex-wrap:wrap;margin:14px 0}#edit-palette button{width:30px;height:30px;padding:0;color:#181c28}
+#edit-palette button[aria-pressed=true]{outline:3px solid #f8dc88;outline-offset:1px}
+.edit-work{display:flex;gap:24px;flex-wrap:wrap;align-items:flex-start}
+#edit-grid{width:320px;max-width:100%;height:auto;touch-action:none;cursor:crosshair;image-rendering:pixelated}
+#edit-preview,#edit-sheet{image-rendering:pixelated;background:repeating-conic-gradient(#d8dee4 0% 25%,#f3f5f7 0% 50%) 0/16px 16px}
+#edit-preview{width:96px;height:96px}#edit-sheet{width:256px;height:64px}
+#edit-apply{border-color:#a5cf72!important}#edit-status{color:#a5cf72}

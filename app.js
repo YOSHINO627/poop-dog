@@ -15,6 +15,7 @@ const spriteStatus = document.querySelector('#sprite-status');
 const actions = { left: new Set(), right: new Set(), jump: new Set() };
 let jumpPressed = false, startRequested = false, pendingSprite = '', state = 'TITLE';
 let runtime, loading = false, best = 0, paused = document.hidden;
+let editingSprite = false, currentSprite = null;
 function loadBest() {
   try {
     const value = Number(localStorage.getItem(BEST_KEY));
@@ -32,9 +33,16 @@ function saveBest(score) {
 }
 window.poopDog = {
   loadBest, saveBest, debugEnabled,
+  setEditing(value) { editingSprite = Boolean(value); clearInput(); },
+  setCurrentSprite(json) { currentSprite = JSON.parse(json); },
+  getCurrentSprite() { return currentSprite?.slice() || null; },
+  applyEditorSprite(rows) {
+    if (!Array.isArray(rows) || rows.length !== 16 || rows.some(row => !/^[0-9a-f]{64}$/.test(row))) return false;
+    currentSprite = rows.slice(); pendingSprite = JSON.stringify(rows); return true;
+  },
   pollInput() {
     const input = { left: actions.left.size > 0, right: actions.right.size > 0,
-      jump: actions.jump.size > 0, jumpPressed, start: startRequested, paused, debugTarget,
+      jump: actions.jump.size > 0, jumpPressed, start: startRequested, paused: paused || editingSprite, debugTarget,
       dogSelect: dogRequested, selectStep };
     dogRequested = false; selectStep = 0;
     debugTarget = null;
@@ -269,6 +277,7 @@ document.querySelector('#sprite').addEventListener('change', async event => {
     }
     if (sequence !== uploadSequence) return;
     pendingSprite = JSON.stringify(rows);
+    currentSprite = rows.slice();
     spriteStatus.textContent = runtime ? '画像を読み込みました。ゲームへ反映します。' : '画像を読み込みました。ゲーム起動時に反映します。';
     spriteStatus.classList.remove('error');
   } catch (error) {

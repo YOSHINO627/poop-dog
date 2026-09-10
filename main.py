@@ -15,6 +15,7 @@ class App:
         self.game = Game(self.bridge, debug_enabled=self.bridge.debug_enabled)
         self.renderer = Renderer(web_controls=self.bridge.host is not None)
         self.previous_jump = False
+        self.shared_sprite = None
         pyxel.run(self.update, self.draw)
 
     def update(self):
@@ -33,6 +34,10 @@ class App:
         sprite = self.bridge.sprite()
         if sprite is not None:
             self.renderer.set_custom_sprite(sprite)
+        self.renderer.sync_dog(self.game)
+        if self.shared_sprite is not self.renderer.current_rows:
+            self.shared_sprite = self.renderer.current_rows
+            self.bridge.publish_sprite(self.shared_sprite)
         self.bridge.publish(self.game)
 
     def draw(self):
