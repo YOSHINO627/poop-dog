@@ -205,3 +205,47 @@ document.querySelector('#sprite').addEventListener('change', async event => {
     event.target.value = '';
   }
 });
+
+
+// Presentation-only: toggling never recreates the Python runtime or game state.
+const viewToggle = document.querySelector('#view-toggle');
+const arcade = document.querySelector('.arcade');
+let expanded = false, viewBusy = false, nativeView = false;
+function setExpanded(value) {
+  expanded = value;
+  document.body.classList.toggle('expanded', value);
+  viewToggle.textContent = value ? '戻る ↙' : '拡大 ⛶';
+  viewToggle.setAttribute('aria-pressed', String(value));
+  clearInput();
+}
+viewToggle.addEventListener('click', async () => {
+  if (viewBusy) return;
+  viewBusy = true;
+  try {
+    if (expanded) {
+      if (document.fullscreenElement && document.exitFullscreen) {
+        try { await document.exitFullscreen(); } catch { /* Keep the visible return control usable. */ }
+      }
+      nativeView = false;
+      setExpanded(false);
+    } else {
+      setExpanded(true);
+      if (arcade.requestFullscreen) {
+        try { await arcade.requestFullscreen(); nativeView = !!document.fullscreenElement; }
+        catch { /* iPhone and denied requests keep the viewport-sized layout. */ }
+      }
+    }
+  } finally {
+    viewBusy = false;
+    document.querySelector('#canvas').focus();
+  }
+});
+document.addEventListener('fullscreenchange', () => {
+  if (!document.fullscreenElement && nativeView) {
+    nativeView = false;
+    setExpanded(false);
+  }
+});
+window.addEventListener('keydown', event => {
+  if (event.key === 'Escape' && expanded && !document.fullscreenElement) setExpanded(false);
+});
