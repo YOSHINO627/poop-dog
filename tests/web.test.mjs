@@ -105,3 +105,35 @@ test('fullscreen rejection falls back and native exit restores normal mode',asyn
  f.document.fullscreenElement=null;await f.document.emit('fullscreenchange');
  assert.equal(f.elements['#view-toggle']['aria-pressed'],'false');
 });
+
+
+test('iPhone touch release outside button and cancellation cannot leave movement held',async()=>{
+ const f=fixture(),right=f.buttons[1],jump=f.buttons[2];
+ await right.emit('pointerdown',{pointerType:'touch',pointerId:10});
+ assert.equal(poll(f).right,false);
+ await right.emit('touchstart',{changedTouches:[{identifier:10}]});
+ await jump.emit('touchstart',{changedTouches:[{identifier:11}]});
+ assert.equal(poll(f).right,true);assert.equal(poll(f).jump,true);
+ await f.window.emit('touchend',{touches:[{identifier:11}]});
+ assert.equal(poll(f).right,false);assert.equal(poll(f).jump,true);
+ await f.window.emit('touchcancel',{touches:[]});assert.equal(poll(f).jump,false);
+});
+test('global pointer release, long press and rotation clear stale controls',async()=>{
+ const f=fixture(),right=f.buttons[1];
+ await right.emit('pointerdown',{pointerId:3});
+ await f.window.emit('pointerup',{pointerId:3});assert.equal(poll(f).right,false);
+ await right.emit('pointerdown',{pointerId:4});
+ let prevented=false;
+ await f.elements['.arcade'].emit('contextmenu',{preventDefault(){prevented=true}});
+ assert.equal(prevented,true);assert.equal(poll(f).right,false);
+ await right.emit('touchstart',{changedTouches:[{identifier:5}]});
+ await f.window.emit('orientationchange');assert.equal(poll(f).right,false);
+});
+test('dragging a finger off a key releases only that finger',async()=>{
+ const f=fixture(),right=f.buttons[1];
+ right.getBoundingClientRect=()=>({left:0,right:60,top:0,bottom:60});
+ await right.emit('touchstart',{changedTouches:[{identifier:1},{identifier:2}]});
+ await right.emit('touchmove',{changedTouches:[{identifier:1,clientX:100,clientY:20}]});
+ assert.equal(poll(f).right,true);
+ await f.window.emit('touchend',{touches:[]});assert.equal(poll(f).right,false);
+});
