@@ -21,11 +21,12 @@
     <div class="screen-frame">
       <div class="screen" id="screen">
         <canvas id="canvas" width="256" height="144" tabindex="0" aria-label="ゲーム画面。A/Dで移動、Spaceでジャンプ"></canvas>
+        <button id="game-action" type="button" hidden disabled>START</button>
         <div id="boot" class="boot"><div class="eyebrow">WATCH THE SKY.</div><h1>POOP DOG<span>.</span></h1><div class="dog-preview" aria-hidden="true"></div><p>ちいさなダックス、大きなサバイバル。</p><button id="load" class="primary">ゲームを起動 <span>↗</span></button><p id="load-status" role="status">3 LEVELS × 5 WAVES · 3 HEARTS · ONE LITTLE DOG</p></div>
       </div>
       <div class="touch-controls" aria-label="タッチ操作"><div class="directions"><button data-action="left" aria-label="左へ移動">◀<span>LEFT</span></button><button data-action="right" aria-label="右へ移動">▶<span>RIGHT</span></button></div><button data-action="jump" class="jump" aria-label="ジャンプ">↑<span>JUMP</span></button></div>
     </div>
-    <div class="game-bar"><div><span class="live-dot"></span><span id="game-status">READY WHEN YOU ARE</span></div><button id="view-toggle" type="button" aria-pressed="false">拡大 ⛶</button><button id="action" disabled>START <span>↗</span></button></div>
+    <div class="game-bar"><div><span class="live-dot"></span><span id="game-status">READY WHEN YOU ARE</span></div><button id="view-toggle" type="button" aria-pressed="false">拡大 ⛶</button></div>
   </section>
   <section id="debug-panel" hidden style="padding:16px;border:1px solid #f06b65;margin:12px 0">
     <strong>DEBUG MODE — BESTは保存されません</strong>

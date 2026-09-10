@@ -5,7 +5,7 @@ let debugTarget = null;
 // Pyxel's WASM input driver reads this global even with a custom touch controller.
 window._virtualGamepadStates = Array(10).fill(false);
 const bestLabel = document.querySelector('#best');
-const actionButton = document.querySelector('#action');
+const actionButton = document.querySelector('#game-action');
 const statusLabel = document.querySelector('#game-status');
 const spriteStatus = document.querySelector('#sprite-status');
 const actions = { left: new Set(), right: new Set(), jump: new Set() };
@@ -42,6 +42,7 @@ window.poopDog = {
     if (debugEnabled) document.querySelector("#debug-go").disabled = false;
     const canStart = ['TITLE', 'GAME_OVER', 'GAME_CLEAR'].includes(state);
     actionButton.disabled = !canStart;
+    actionButton.hidden = !canStart;
     actionButton.innerHTML = (state === 'TITLE' ? 'START' : 'RETRY') + ' <span>↗</span>';
     statusLabel.textContent = state === 'PLAYING' ? `LEVEL ${data.level || 1} / 3 · WAVE ${data.wave} / 5 · STAY DRY, LITTLE DOG` : state.replaceAll('_', ' ');
   },
@@ -130,7 +131,16 @@ for (const name of ['contextmenu','selectstart','dragstart']) {
   document.querySelector('.arcade').addEventListener(name, event => {event.preventDefault();clearInput();});
 }
 const screen = document.querySelector('#screen');
-for (const name of ['touchstart','touchmove']) screen.addEventListener(name, event => event.preventDefault(), {passive:false});
+// Suppress browser gestures only on the canvas, never on HTML launch buttons.
+const gameCanvas = document.querySelector('#canvas');
+for (const name of ['touchstart','touchmove']) gameCanvas.addEventListener(name, event => event.preventDefault(), {passive:false});
+gameCanvas.addEventListener('touchend', event => {
+  event.preventDefault();
+  if (runtime && ['TITLE','GAME_OVER','GAME_CLEAR'].includes(state)) {
+    startRequested = true;
+    paused = false;
+  }
+}, {passive:false});
 window.addEventListener('error', event => {
   if (!runtime) return;
   statusLabel.textContent = '実行エラーが発生しました。ページを再読み込みしてください。';
@@ -262,6 +272,7 @@ function setExpanded(value) {
   viewToggle.textContent = value ? '戻る ↙' : '拡大 ⛶';
   viewToggle.setAttribute('aria-pressed', String(value));
   clearInput();
+  syncViewport();
 }
 viewToggle.addEventListener('click', async () => {
   if (viewBusy) return;
@@ -294,3 +305,14 @@ document.addEventListener('fullscreenchange', () => {
 window.addEventListener('keydown', event => {
   if (event.key === 'Escape' && expanded && !document.fullscreenElement) setExpanded(false);
 });
+
+
+// Use the current visual viewport rather than stale pre-rotation layout heights.
+function syncViewport() {
+  const height = window.visualViewport?.height || window.innerHeight;
+  if (Number.isFinite(height) && height > 0) document.documentElement.style.setProperty('--app-height', `${height}px`);
+}
+window.addEventListener('resize', syncViewport);
+window.addEventListener('orientationchange', syncViewport);
+window.visualViewport?.addEventListener('resize', syncViewport);
+syncViewport();
