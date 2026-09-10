@@ -174,3 +174,15 @@ test('DOG selection controls are one-shot and only available on menus',async()=>
  assert.equal(f.elements['#dog-next'].hidden,true);
  assert.equal(f.elements['#game-action'].hidden,true);
 });
+
+test('editor bridge validates sheets, pauses gameplay and sends a single update',()=>{
+ const f=fixture(); const rows=Array(16).fill('f'.repeat(64));
+ f.host.setEditing(true);assert.equal(poll(f).paused,true);
+ assert.equal(f.host.applyEditorSprite(['bad']),false);assert.equal(f.host.takeSprite(),'');
+ assert.equal(f.host.applyEditorSprite(rows),true);
+ assert.deepEqual(JSON.parse(f.host.takeSprite()),rows);assert.equal(f.host.takeSprite(),'');
+ assert.deepEqual(f.host.getCurrentSprite(),rows);
+ f.host.setCurrentSprite(JSON.stringify(Array(16).fill('7'.repeat(64))));
+ assert.equal(f.host.getCurrentSprite()[0],'7'.repeat(64));
+ f.host.setEditing(false);assert.equal(poll(f).paused,false);
+});
