@@ -6,28 +6,31 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from PIL import Image
 from src.config import PALETTE
 
+# Rounded head and soft cream markings match the companion dogs.
+# The low, slightly elongated body stays within the original 16x16 contract.
 base = [
-'................',
 '................',
 '................',
 '..........000...',
 '.........00000..',
-'.........00a070.',
-'..0......002aa0.',
-'..00.0000002aa0.',
-'...00000000200..',
-'...00000000aa...',
-'...0aaaaaaaa0...',
-'...0a00000aa0...',
-'...aa.....aa....',
-'...a0.....a0....',
-'................',
+'.........00700..',
+'.........010770.',
+'.0.......0107770',
+'.00.....0010777.',
+'..00000000107e..',
+'..000000000077..',
+'..000000000077..',
+'...0eeeeeee77...',
+'...077....077...',
+'...77.....77....',
+'...77.....77....',
 '................',
 ]
 frames = [base.copy() for _ in range(4)]
-frames[1][12:14] = ['..aa.......aa...', '..a0.......a0...']
-frames[2][12:14] = ['....aa...aa.....', '....a0...a0.....']
-frames[3][11:14] = ['...0aa0000aa0...', '....a0...a0.....', '................']
+frames[1][12:15] = ['..077......077..', '..77.......77...', '..77............']
+frames[2][12:15] = ['....077..077....', '....77...77.....', '.........77.....']
+frames[3][12:15] = ['...077....077...', '....77...77.....', '................']
+assert all(len(rows) == 16 and all(len(row) == 16 for row in rows) for rows in frames)
 im = Image.new('RGBA', (64, 16))
 for frame, rows in enumerate(frames):
     for y, row in enumerate(rows):
