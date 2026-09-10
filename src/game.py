@@ -12,6 +12,7 @@ from .kibble import KibbleField
 from .friend import Friend
 from .rain_events import RainEvents
 from .legendary_stick import LegendaryStick
+from .dog_sprites import BREEDS
 
 class GameState(Enum):
     TITLE = auto()
@@ -19,11 +20,16 @@ class GameState(Enum):
     WAVE_CLEAR = auto()
     GAME_OVER = auto()
     GAME_CLEAR = auto()
+    DOG_SELECT = auto()
 
 class Game:
     def __init__(self, storage, rng=None, hazard_factory=None, debug_enabled=False):
         self.debug_enabled = debug_enabled
         self.debug_start = (0, 0)
+        self.selected_breed = self.breed_cursor = 0
+        self.breed_revision = 0
+        self.selection_return = GameState.TITLE
+        self.selection_direction = 0
         self.rng = rng or random.Random()
         self.stage = Stage()
         self.hazard_factory = hazard_factory or (
@@ -101,7 +107,7 @@ class Game:
                     self.heal_feedback_ticks = C.FLORAL_FEEDBACK_TICKS
         self.florals = [f for f in self.florals if f.alive]
 
-    def update(self, direction=0, jump=False, start=False, paused=False, debug_target=None):
+    def update(self, direction=0, jump=False, start=False, paused=False, debug_target=None, dog_select=False, select_step=0):
         if self.debug_enabled and isinstance(debug_target, dict):
             level, wave = debug_target.get("level"), debug_target.get("wave")
             if (type(level) is int and type(wave) is int
@@ -111,8 +117,23 @@ class Game:
                 return
         if paused:
             return
+        if self.state == GameState.DOG_SELECT:
+            step = select_step or (direction if direction != self.selection_direction else 0)
+            self.selection_direction = direction
+            if step:
+                self.breed_cursor = (self.breed_cursor + (1 if step > 0 else -1)) % len(BREEDS)
+            if start or jump:
+                self.selected_breed = self.breed_cursor
+                self.breed_revision += 1
+                self.state = self.selection_return
+            return
         if self.state in (GameState.TITLE, GameState.GAME_OVER, GameState.GAME_CLEAR):
-            if start:
+            if dog_select:
+                self.selection_return = self.state
+                self.breed_cursor = self.selected_breed
+                self.selection_direction = direction
+                self.state = GameState.DOG_SELECT
+            elif start:
                 self.reset()
             return
         if self.state == GameState.WAVE_CLEAR:

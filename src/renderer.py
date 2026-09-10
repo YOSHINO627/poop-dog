@@ -3,11 +3,15 @@ from pathlib import Path
 import pyxel as p
 from . import config as C
 from .game import GameState
+from .dog_sprites import BREEDS, sheet
 
 class Renderer:
     def __init__(self, web_controls=False):
         self.web_controls = web_controls
         self.clear_started = None
+        self.breed_revision = 0
+        self.sprite_key = None
+        self.custom_sprite = None
         # Explicit indexed data avoids PNG loader alpha/palette reassignment.
         self.apply_sprite(json.loads(Path('assets/default_player.json').read_text()))
 
@@ -18,6 +22,34 @@ class Renderer:
             return False
         p.images[0].set(0, 0, rows)
         return True
+
+    def set_custom_sprite(self, rows):
+        if self.apply_sprite(rows):
+            self.custom_sprite = rows
+            self.sprite_key = None
+
+    def sync_dog(self, game):
+        if self.breed_revision != game.breed_revision:
+            self.custom_sprite = None
+            self.breed_revision = game.breed_revision
+        selecting = game.state == GameState.DOG_SELECT
+        index = game.breed_cursor if selecting else game.selected_breed
+        key = (index, selecting, game.breed_revision)
+        if key != self.sprite_key:
+            self.apply_sprite(sheet(index) if selecting or self.custom_sprite is None else self.custom_sprite)
+            self.sprite_key = key
+
+    def dog_selection(self, game):
+        self.center('CHOOSE YOUR DOG', 35, 10)
+        p.elli(99, 47, 58, 36, 12)
+        frame = 1 + (p.frame_count // 10) % 2
+        p.blt(120, 55, 0, frame*16, 0, 16, 16, C.TRANSPARENT_COLOR, scale=2)
+        self.center(BREEDS[game.breed_cursor], 85, 7)
+        p.text(67, 61, '<', 11)
+        p.text(185, 61, '>', 11)
+        self.center(f'{game.breed_cursor+1} / {len(BREEDS)}', 94, 6)
+        if not self.web_controls:
+            self.center('[ ENTER / SPACE : OK ]', 108, 11)
 
     def center(self, text, y, color=7):
         p.text((C.WIDTH - len(text) * 4) // 2, y, text, color)
@@ -270,8 +302,10 @@ class Renderer:
         self.center(f'BEST SCORE {game.score.best:04}', 85, 10)
         if not self.web_controls:
             self.center('[ RETRY / SPACE ]', 101, 11)
+            self.center('D : CHOOSE DOG', 115, 6)
 
     def draw(self, game):
+        self.sync_dog(game)
         if game.state == GameState.GAME_CLEAR:
             if self.clear_started is None:
                 self.clear_started = p.frame_count
@@ -331,13 +365,16 @@ class Renderer:
         p.rect(43, 27, 170, 99, 0)
         p.rectb(45, 29, 166, 95, 4)
         state = game.state
-        if state == GameState.TITLE:
+        if state == GameState.DOG_SELECT:
+            self.dog_selection(game)
+        elif state == GameState.TITLE:
             p.blt(78, 39, 0, 0, 0, 16, 16, C.TRANSPARENT_COLOR, scale=2)
             p.text(105, 44, 'POOP DOG', 10)
             self.center('3 LEVELS / 5 WAVES EACH', 66, 6)
             self.center(f'BEST SCORE {game.score.best:04}', 79, 7)
             if not self.web_controls:
                 self.center('[ START / SPACE ]', 101, 11)
+                self.center('D : CHOOSE DOG', 115, 6)
         elif state == GameState.WAVE_CLEAR:
             self.center('WAVE CLEAR', 41, 10)
             self.center(f'CLEAR +{C.CLEAR_POINTS}', 57, 7)
@@ -354,3 +391,4 @@ class Renderer:
             self.center(f'BEST SCORE {game.score.best:04}', 73, 10)
             if not self.web_controls:
                 self.center('[ RETRY / SPACE ]', 101, 11)
+                self.center('D : CHOOSE DOG', 115, 6)
