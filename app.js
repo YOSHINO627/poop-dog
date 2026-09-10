@@ -44,6 +44,7 @@ window.poopDog = {
     actionButton.disabled = !canStart;
     actionButton.hidden = !canStart;
     actionButton.textContent = state === 'TITLE' ? 'START' : 'RETRY';
+    actionButton.classList.toggle('retry', state === 'GAME_OVER' || state === 'GAME_CLEAR');
     statusLabel.textContent = state === 'PLAYING' ? `LEVEL ${data.level || 1} / 3 · WAVE ${data.wave} / 5 · STAY DRY, LITTLE DOG` : state.replaceAll('_', ' ');
   },
 };

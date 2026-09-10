@@ -96,6 +96,8 @@ body.expanded #action{padding:8px}
 #game-action{top:63.1944%;width:40%;height:18.0556%;min-width:0;min-height:0;padding:0;display:flex;align-items:center;justify-content:center;font-size:clamp(12px,2vw,20px);box-sizing:border-box}
 #game-action[hidden]{display:none}
 #game-action::after{content:"";position:absolute;left:0;right:0;top:50%;transform:translateY(-50%);height:100%;min-height:44px}
+/* Leave ten internal pixels below the final BEST SCORE line. */
+#game-action.retry{top:69.4444%;width:32%;height:12.5%}
 /* Transparent paw silhouette; retain the whole original rectangular touch target. */
 .touch-controls button.jump{position:relative;background:transparent!important;border:0!important;box-shadow:none;color:#a5cf72b3;border-radius:0}
 .touch-controls .jump .paw{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
