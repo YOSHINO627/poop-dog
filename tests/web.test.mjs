@@ -13,7 +13,7 @@ class Element {
   async emit(name, event={}) { for (const fn of this.listeners[name] || []) await fn({preventDefault(){}, ...event}); }
 }
 function fixture(blocked=false, stored='0', search='') {
-  const elements = Object.fromEntries(['best','game-action','game-status','sprite-status','screen','load','load-status','canvas','boot','sprite','debug-panel','debug-go','debug-level','debug-wave','view-toggle'].map(id => ['#'+id,new Element()]));
+  const elements = Object.fromEntries(['dog-select','dog-prev','dog-next','best','game-action','game-status','sprite-status','screen','load','load-status','canvas','boot','sprite','debug-panel','debug-go','debug-level','debug-wave','view-toggle'].map(id => ['#'+id,new Element()]));
   elements['.arcade'] = new Element();
   const buttons = ['left','right','jump'].map(action=>new Element(action));
   const data = new Map([['poop_dog_best_score', stored]]);
@@ -155,4 +155,22 @@ test('launch controls do not cancel touch clicks and in-screen start is one-shot
  assert.equal(f.elements['#game-action'].hidden,true);
  f.host.publish(JSON.stringify({state:'GAME_OVER'}));
  assert.equal(f.elements['#game-action'].hidden,false);
+});
+
+test('DOG selection controls are one-shot and only available on menus',async()=>{
+ const f=fixture();
+ f.host.publish(JSON.stringify({state:'TITLE',wave:1}));
+ assert.equal(f.elements['#dog-select'].hidden,false);
+ await f.elements['#dog-select'].emit('click');
+ assert.equal(poll(f).dogSelect,true);assert.equal(poll(f).dogSelect,false);
+ f.host.publish(JSON.stringify({state:'DOG_SELECT',wave:1}));
+ assert.equal(f.elements['#game-action'].textContent,'OK');
+ assert.equal(f.elements['#dog-next'].hidden,false);
+ await f.elements['#dog-next'].emit('click');assert.equal(poll(f).selectStep,1);
+ assert.equal(poll(f).selectStep,0);
+ await f.elements['#dog-prev'].emit('click');assert.equal(poll(f).selectStep,-1);
+ f.host.publish(JSON.stringify({state:'PLAYING',wave:1}));
+ assert.equal(f.elements['#dog-select'].hidden,true);
+ assert.equal(f.elements['#dog-next'].hidden,true);
+ assert.equal(f.elements['#game-action'].hidden,true);
 });
