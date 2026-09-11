@@ -30,6 +30,8 @@ class Renderer:
                 game.breed_cursor if game.state == GameState.DOG_SELECT else game.selected_breed)
             self.custom_sprites[index] = rows
             self.sprite_key = None
+            return index
+        return None
 
     def sync_dog(self, game):
         if self.breed_revision != game.breed_revision:

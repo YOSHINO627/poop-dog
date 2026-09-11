@@ -20,6 +20,24 @@ class Bridge:
         if self.host:
             self.host.saveBest(score)
 
+    def load_custom_sprites(self):
+        try:
+            return json.loads(str(self.host.loadCustomSprites())) if self.host else {}
+        except Exception:
+            return {}
+
+    def load_dog_choice(self):
+        try:
+            return int(self.host.loadDogChoice()) if self.host else 0
+        except Exception:
+            return 0
+
+    def save_custom_sprite(self, index, rows):
+        try:
+            return bool(self.host.saveCustomSprite(index, json.dumps(rows))) if self.host else False
+        except Exception:
+            return False
+
     def input(self):
         return json.loads(str(self.host.pollInput())) if self.host else {}
 
@@ -35,6 +53,7 @@ class Bridge:
         if self.host:
             self.host.publish(json.dumps({
                 'state': game.state.name, 'hp': game.hp,
+                'selectedBreed': game.selected_breed,
                 'score': game.score.score, 'best': game.score.best,
                 'level': game.wave.level + 1, 'wave': game.wave.index + 1, 'time': game.wave.remaining,
             }))
