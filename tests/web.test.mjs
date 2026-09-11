@@ -181,6 +181,9 @@ test('editor bridge validates sheets, pauses gameplay and sends a single update'
  assert.equal(f.host.applyEditorSprite(['bad']),false);assert.equal(f.host.takeSprite(),'');
  assert.equal(f.host.applyEditorSprite(rows),true);
  assert.deepEqual(JSON.parse(f.host.takeSprite()),rows);assert.equal(f.host.takeSprite(),'');
+ assert.equal(f.host.getSpriteApplyStatus(),'pending');
+ f.host.setCurrentSprite(JSON.stringify(rows));
+ assert.equal(f.host.getSpriteApplyStatus(),'applied');
  assert.deepEqual(f.host.getCurrentSprite(),rows);
  f.host.setCurrentSprite(JSON.stringify(Array(16).fill('7'.repeat(64))));
  assert.equal(f.host.getCurrentSprite()[0],'7'.repeat(64));
