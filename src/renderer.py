@@ -336,7 +336,7 @@ class Renderer:
             mouth_x = dog.x + (14 if dog.facing > 0 else 1)
             self.legendary_stick(mouth_x, dog.y + 2, dog.stick_ticks, dog.facing)
         if game.heal_feedback_ticks:
-            p.text(dog.x - 10, dog.y - 9, 'FLORAL +1', 13)
+            p.text(dog.x - 10, dog.y - 9, game.heal_feedback_label, 13)
         if game.score.delicious_ticks:
             label_x = max(game.camera.x + 2, min(dog.x - 12, game.camera.x + C.WIDTH - 42))
             label_y = max(20, dog.y - (19 if game.heal_feedback_ticks else 10))
@@ -354,6 +354,7 @@ class Renderer:
         if game.debug_enabled:
             p.text(176, 21, 'DEBUG / NO BEST', 8)
         if game.state == GameState.PLAYING:
+            p.text(60, 21, f'HEAL {game.kibble_heal_count}/{C.KIBBLE_HEAL_COUNT}', 11)
             if dog.stick_ticks:
                 seconds = (dog.stick_ticks + C.FPS - 1) // C.FPS
                 self.center(f'LEGENDARY STICK {seconds}s', 29, 10)

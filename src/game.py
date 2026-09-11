@@ -43,11 +43,13 @@ class Game:
         if self.debug_enabled:
             self.wave.level, self.wave.index = self.debug_start
         self.hp = C.MAX_HP
+        self.kibble_heal_count = 0
         self.hazards = []
         self.florals = []
         self.kibbles = KibbleField()
         self.floral_spawn_ticks = self.next_floral_delay()
         self.heal_feedback_ticks = 0
+        self.heal_feedback_label = ''
         self.splashes = []
         self.interval_ticks = 0
         self.last_bonus = 0
@@ -72,6 +74,17 @@ class Game:
 
     def next_floral_delay(self):
         return self.rng.randint(C.FLORAL_MIN_TICKS, C.FLORAL_MAX_TICKS)
+
+    def collect_kibble(self):
+        self.score.collect_kibble()
+        self.kibble_heal_count += 1
+        if self.kibble_heal_count >= C.KIBBLE_HEAL_COUNT:
+            # Milestones are consumed even at full HP; progress survives waves.
+            self.kibble_heal_count -= C.KIBBLE_HEAL_COUNT
+            if 0 < self.hp < C.MAX_HP:
+                self.hp = min(C.MAX_HP, self.hp + C.KIBBLE_HEAL)
+                self.heal_feedback_ticks = C.KIBBLE_FEEDBACK_TICKS
+                self.heal_feedback_label = 'FOOD +1'
 
     def update_sticks(self):
         # None marks an already-used spawn, even after the item is collected/missed.
@@ -105,6 +118,7 @@ class Game:
                 if self.hp < C.MAX_HP:
                     self.hp = min(C.MAX_HP, self.hp + C.FLORAL_HEAL)
                     self.heal_feedback_ticks = C.FLORAL_FEEDBACK_TICKS
+                    self.heal_feedback_label = 'FLORAL +1'
         self.florals = [f for f in self.florals if f.alive]
 
     def update(self, direction=0, jump=False, start=False, paused=False, debug_target=None, dog_select=False, select_step=0):
@@ -170,7 +184,7 @@ class Game:
             self.update_florals()
             self.score.tick_combo()
             for _ in range(self.kibbles.update(self.rng, self.stage, self.camera, self.player)):
-                self.score.collect_kibble()
+                self.collect_kibble()
         if self.hp <= 0:
             self.state = GameState.GAME_OVER
         elif self.wave.complete:
