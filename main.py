@@ -33,7 +33,7 @@ class App:
                          pyxel.btnp(pyxel.KEY_D) or web.get('dogSelect', False), web.get('selectStep', 0))
         sprite = self.bridge.sprite()
         if sprite is not None:
-            self.renderer.set_custom_sprite(sprite)
+            self.renderer.set_custom_sprite(sprite, self.game)
         self.renderer.sync_dog(self.game)
         if self.shared_sprite is not self.renderer.current_rows:
             self.shared_sprite = self.renderer.current_rows

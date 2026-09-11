@@ -16,6 +16,7 @@ const actions = { left: new Set(), right: new Set(), jump: new Set() };
 let jumpPressed = false, startRequested = false, pendingSprite = '', state = 'TITLE';
 let runtime, loading = false, best = 0, paused = document.hidden;
 let editingSprite = false, currentSprite = null;
+let editorSubmission = null, editorApplyStatus = '';
 function loadBest() {
   try {
     const value = Number(localStorage.getItem(BEST_KEY));
@@ -34,11 +35,19 @@ function saveBest(score) {
 window.poopDog = {
   loadBest, saveBest, debugEnabled,
   setEditing(value) { editingSprite = Boolean(value); clearInput(); },
-  setCurrentSprite(json) { currentSprite = JSON.parse(json); },
+  setCurrentSprite(json) {
+    currentSprite = JSON.parse(json);
+    if (editorSubmission && JSON.stringify(currentSprite) === editorSubmission) {
+      editorSubmission = null; editorApplyStatus = 'applied';
+      spriteStatus.textContent = '編集した画像をゲームへ反映しました。';
+    }
+  },
+  getSpriteApplyStatus() { return editorApplyStatus; },
   getCurrentSprite() { return currentSprite?.slice() || null; },
   applyEditorSprite(rows) {
     if (!Array.isArray(rows) || rows.length !== 16 || rows.some(row => !/^[0-9a-f]{64}$/.test(row))) return false;
-    currentSprite = rows.slice(); pendingSprite = JSON.stringify(rows); return true;
+    pendingSprite = JSON.stringify(rows); editorSubmission = pendingSprite;
+    editorApplyStatus = 'pending'; return true;
   },
   pollInput() {
     const input = { left: actions.left.size > 0, right: actions.right.size > 0,
