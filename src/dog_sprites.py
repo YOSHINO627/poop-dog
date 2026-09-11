@@ -81,7 +81,29 @@ CHIHUAHUA_SHEET = (
     'ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff',
 )
 
+# User-edited Pomeranian sheet, preserving all four frames and transparency.
+POMERANIAN_SHEET = (
+    'ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff',
+    'ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff',
+    'fffffffff7ff7ffffffffffff7ff7ffffffffffff7ff7ffffffffffff7ff7fff',
+    'ffffffff777777ffffffffff777777ffffffffff777777ffffffffff777777ff',
+    'ffffffff7e7777ffffffffff7e7777ffffffffff7e7777ffffffffff7e7777ff',
+    'fffffff77770777ffffffff77770777ffffffff77770777ffffffff77770777f',
+    'ff77fff77777770fff77fff77777770fff77fff77777770fff77fff77777770f',
+    'f7777f777777777ff7777f777777777ff7777f777777777ff7777f777777777f',
+    'f7777777777777fff7777777777777fff7777777777777fff7777777777777ff',
+    'ff7e77777777777fff7e77777777777fff7e77777777777fff7e77777777777f',
+    'f77777777777777ff77777777777777ff77777777777777ff77777777777777f',
+    'f7777777777777fff7777777777777fff7777777777777fff7777777777777ff',
+    'ff777777777777ffff777777777777ffff777777777777ffff777777777777ff',
+    'fff77e7777e77fffffff77e77e77ffffff77e77ff77e77fffff77e7777e77fff',
+    'ffff77ffff77fffffffff77ff77ffffffff77ffffff77fffffffffffffffffff',
+    'ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff',
+)
+
 def sheet(index):
+    if index == 1:
+        return list(POMERANIAN_SHEET)
     if index == 2:
         return list(CHIHUAHUA_SHEET)
     if index == 0:
