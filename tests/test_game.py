@@ -41,6 +41,47 @@ class GameTests(unittest.TestCase):
         self.assertEqual(self.game.hp, 3)
         self.assertEqual(self.game.state, GameState.PLAYING)
 
+    def test_kibble_heals_every_thirty_without_erasing_damage_or_score(self):
+        g = self.start()
+        g.damage()
+        for _ in range(29):
+            g.collect_kibble()
+        self.assertEqual(g.hp, 2)
+        g.collect_kibble()
+        self.assertEqual((g.hp, g.kibble_heal_count), (3, 0))
+        self.assertTrue(g.wave.wave_damaged)
+        self.assertEqual(g.score.score, 30 * 30 + 6 * 100)
+        self.assertEqual(g.heal_feedback_label, 'FOOD +1')
+        for _ in range(30):
+            g.collect_kibble()
+        self.assertEqual((g.hp, g.kibble_heal_count), (3, 0))
+
+    def test_kibble_heal_progress_survives_wave_and_resets_on_retry(self):
+        g = self.start()
+        for _ in range(29):
+            g.collect_kibble()
+        g.state = GameState.WAVE_CLEAR
+        g.interval_ticks = C.INTERVAL_SECONDS * C.FPS - 1
+        g.update()
+        self.assertEqual(g.kibble_heal_count, 29)
+        g.damage()
+        with patch('src.kibble.KibbleField.update', return_value=1):
+            g.update()
+        self.assertEqual((g.hp, g.kibble_heal_count), (3, 0))
+        g.collect_kibble()
+        g.state = GameState.GAME_OVER
+        g.update(start=True)
+        self.assertEqual(g.kibble_heal_count, 0)
+
+    def test_kibble_does_not_revive_dead_player(self):
+        g = self.start()
+        g.hp = 0
+        g.kibble_heal_count = 29
+        with patch('src.kibble.KibbleField.update', return_value=1):
+            g.update()
+        self.assertEqual(g.hp, 0)
+        self.assertEqual(g.state, GameState.GAME_OVER)
+
     def test_move_bounds_animation_and_facing(self):
         g = self.start()
         g.update(-1)
