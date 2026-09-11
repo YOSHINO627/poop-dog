@@ -1,5 +1,30 @@
 // This module owns browser I/O only. Every gameplay decision lives in Python.
 const BEST_KEY = 'poop_dog_best_score';
+const DOG_ART_KEY = 'poop_dog_custom_sprites_v1';
+const DOG_CHOICE_KEY = 'poop_dog_selected_breed';
+let lastSavedChoice = null, spritePersisted = false;
+const validSprite = rows => Array.isArray(rows) && rows.length === 16 && rows.every(row => typeof row === 'string' && /^[0-9a-f]{64}$/.test(row));
+function loadCustomSprites() {
+  try {
+    const data = JSON.parse(localStorage.getItem(DOG_ART_KEY) || '{}');
+    const valid = {};
+    for (let i = 0; i < 5; i++) if (validSprite(data?.[i])) valid[i] = data[i];
+    return JSON.stringify(valid);
+  } catch { return '{}'; }
+}
+function saveCustomSprite(index, json) {
+  spritePersisted = false;
+  if (!Number.isInteger(index) || index < 0 || index >= 5) return false;
+  try {
+    const rows = JSON.parse(json);
+    if (!validSprite(rows)) return false;
+    const data = JSON.parse(loadCustomSprites());
+    data[index] = rows;
+    localStorage.setItem(DOG_ART_KEY, JSON.stringify(data));
+    spritePersisted = true;
+    return true;
+  } catch { return false; }
+}
 const debugEnabled = new URLSearchParams(window.location.search).get('debug') === '1';
 let debugTarget = null;
 // Pyxel's WASM input driver reads this global even with a custom touch controller.
@@ -33,6 +58,14 @@ function saveBest(score) {
   try { localStorage.setItem(BEST_KEY, String(best)); } catch { /* In-memory fallback. */ }
 }
 window.poopDog = {
+  loadCustomSprites, saveCustomSprite,
+  getSpritePersistenceStatus() { return spritePersisted; },
+  loadDogChoice() {
+    try {
+      const value = Number(localStorage.getItem(DOG_CHOICE_KEY));
+      return Number.isInteger(value) && value >= 0 && value < 5 ? value : 0;
+    } catch { return 0; }
+  },
   loadBest, saveBest, debugEnabled,
   setEditing(value) { editingSprite = Boolean(value); clearInput(); },
   setCurrentSprite(json) {
@@ -61,6 +94,10 @@ window.poopDog = {
   takeSprite() { const value = pendingSprite; pendingSprite = ''; return value; },
   publish(json) {
     const data = JSON.parse(json);
+    if (data.selectedBreed !== lastSavedChoice && Number.isInteger(data.selectedBreed) && data.selectedBreed >= 0 && data.selectedBreed < 5) {
+      try { localStorage.setItem(DOG_CHOICE_KEY, String(data.selectedBreed)); } catch { /* Storage is optional. */ }
+      lastSavedChoice = data.selectedBreed;
+    }
     state = data.state;
     if (debugEnabled) document.querySelector("#debug-go").disabled = false;
     const canStart = ['TITLE', 'GAME_OVER', 'GAME_CLEAR'].includes(state);

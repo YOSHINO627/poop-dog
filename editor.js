@@ -6,7 +6,7 @@ panel.innerHTML = `<summary>ドット絵エディター</summary>
 <div class="edit-toolbar"><button id="edit-current">現在の犬を読み込む</button><button id="edit-undo">元に戻す</button><button id="edit-redo">やり直す</button></div>
 <div class="edit-toolbar"><label>フレーム <select id="edit-frame"><option>待機</option><option>歩行1</option><option>歩行2</option><option>ジャンプ</option></select></label><label>ツール <select id="edit-tool"><option value="pen">ペン</option><option value="erase">消しゴム</option><option value="fill">塗りつぶし</option><option value="pick">スポイト</option></select></label><button id="edit-copy">前フレームをコピー</button><button id="edit-flip">左右反転</button></div>
 <div id="edit-palette" aria-label="描画色"></div><div class="edit-work"><canvas id="edit-grid" width="320" height="320" aria-label="16×16ドット編集領域"></canvas><div><p>アニメーションプレビュー</p><canvas id="edit-preview" width="16" height="16"></canvas><p>スプライトシート（64×16）</p><canvas id="edit-sheet" width="64" height="16"></canvas></div></div>
-<div class="edit-toolbar"><button id="edit-apply">ゲームに反映</button><button id="edit-download">PNGをダウンロード</button></div><p id="edit-status" role="status">開くと読み込みます。</p><small>下書きはこのブラウザへ自動保存します。PNG保存もおすすめです。反映した画像は犬種ごとに、このページを開いている間保持されます。</small>`;
+<div class="edit-toolbar"><button id="edit-apply">ゲームに反映</button><button id="edit-download">PNGをダウンロード</button></div><p id="edit-status" role="status">開くと読み込みます。</p><small>下書きはこのブラウザへ自動保存します。PNG保存もおすすめです。反映した画像は犬種ごとにこのブラウザへ保存し、次回も復元します。ブラウザのデータを削除すると消えるため、PNG保存もご利用ください。</small>`;
 document.querySelector('.home-tip').before(panel);
 const $ = id => panel.querySelector('#edit-'+id);
 let pixels = null, palette = [], frame = 0, color = 0, tool = 'pen', undo = [], redo = [], pointer = null, last = null, ready = false, initializing = false;
@@ -85,7 +85,7 @@ $('apply').addEventListener('click',()=>{
  }
 });
 let reportedStatus='';
-setInterval(()=>{const status=window.poopDog.getSpriteApplyStatus();if(status!==reportedStatus){reportedStatus=status;if(status==='applied')message('ゲーム側で編集画像の反映を確認しました。');}},200);
+setInterval(()=>{const status=window.poopDog.getSpriteApplyStatus();if(status!==reportedStatus){reportedStatus=status;if(status==='applied')message(window.poopDog.getSpritePersistenceStatus() ? 'ゲームへ反映し、このブラウザに保存しました。次回も復元されます。' : 'ゲームへ反映しましたが、ブラウザへの保存はできませんでした。PNGをダウンロードしてください。');}},200);
 $('download').addEventListener('click',()=>{
  if(!ready)return;const c=document.createElement('canvas');c.width=64;c.height=16;rgba(c.getContext('2d'),64);
  c.toBlob(blob=>{if(!blob){message('PNGの生成に失敗しました。');return;}const a=document.createElement('a'),url=URL.createObjectURL(blob);a.href=url;a.download='poop-dog-sprite.png';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);message('64×16pxの透過PNGを保存しました。');},'image/png');

@@ -14,6 +14,13 @@ class App:
         self.bridge = Bridge()
         self.game = Game(self.bridge, debug_enabled=self.bridge.debug_enabled)
         self.renderer = Renderer(web_controls=self.bridge.host is not None)
+        saved_choice = self.bridge.load_dog_choice()
+        for index, rows in self.bridge.load_custom_sprites().items():
+            if str(index) in ('0', '1', '2', '3', '4'):
+                self.game.selected_breed = int(index)
+                self.renderer.set_custom_sprite(rows, self.game)
+        self.game.selected_breed = self.game.breed_cursor = saved_choice if saved_choice in range(5) else 0
+        self.renderer.sync_dog(self.game)
         self.previous_jump = False
         self.shared_sprite = None
         pyxel.run(self.update, self.draw)
@@ -33,7 +40,9 @@ class App:
                          pyxel.btnp(pyxel.KEY_D) or web.get('dogSelect', False), web.get('selectStep', 0))
         sprite = self.bridge.sprite()
         if sprite is not None:
-            self.renderer.set_custom_sprite(sprite, self.game)
+            index = self.renderer.set_custom_sprite(sprite, self.game)
+            if index is not None:
+                self.bridge.save_custom_sprite(index, sprite)
         self.renderer.sync_dog(self.game)
         if self.shared_sprite is not self.renderer.current_rows:
             self.shared_sprite = self.renderer.current_rows
