@@ -50,7 +50,29 @@ POSES = (
 )
 
 
+# User-edited 64x16 PNG: preserve all four frames pixel-for-pixel.
+CHIHUAHUA_SHEET = (
+    'ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff',
+    'ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff',
+    'ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff',
+    'ffffff00fffff0ffffffff00fffff0ffffffff00fffff0ffffffff00fffff0ff',
+    'ffffff70ffff07ffffffff70ffff07ffffffff70ffff07ffffffff70ffff07ff',
+    'ffffff7e0ff0e7ffffffff7e0ff0e7ffffffff7e0ff0e7ffffffff7e0ff0e7ff',
+    'ffffff7e000007ffffffff7e000007ffffffff7e000007ffffffff7e000007ff',
+    'ffffff00700700ffffffff00700700ffffffff00700700ffffffff00700700ff',
+    'fff00ff000000ffffff00ff000000ffffff00ff000000ffffff00ff000000fff',
+    'ff70fff077070fffff70fff077070fffff70fff077070fffff70fff077070fff',
+    'fff700007770fffffff700007770fffffff700007770fffffff700007770ffff',
+    'ffff0000077fffffffff0000077fffffffff0000077fffffffff0000077fffff',
+    'ffff0000077fffffffff0000077fffffffff0000077fffffffff0000077fffff',
+    'ffff7f67ff7ffffffffff7f677fffffffff7f67ffff7ffffffff7f67ff7fffff',
+    'ffffef4effeffffffffffef4eefffffffffef4effffeffffffffffffffffffff',
+    'ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff',
+)
+
 def sheet(index):
+    if index == 2:
+        return list(CHIHUAHUA_SHEET)
     if index == 0:
         return json.loads(Path('assets/default_player.json').read_text())
     idle = [row.replace('.', 'f').ljust(16, 'f') for row in POSES[index-1]]

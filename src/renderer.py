@@ -11,7 +11,7 @@ class Renderer:
         self.clear_started = None
         self.breed_revision = 0
         self.sprite_key = None
-        self.custom_sprite = None
+        self.custom_sprites = {}
         # Explicit indexed data avoids PNG loader alpha/palette reassignment.
         self.apply_sprite(json.loads(Path('assets/default_player.json').read_text()))
 
@@ -24,20 +24,21 @@ class Renderer:
         self.current_rows = rows
         return True
 
-    def set_custom_sprite(self, rows):
+    def set_custom_sprite(self, rows, game=None):
         if self.apply_sprite(rows):
-            self.custom_sprite = rows
+            index = (self.sprite_key[0] if self.sprite_key else 0) if game is None else (
+                game.breed_cursor if game.state == GameState.DOG_SELECT else game.selected_breed)
+            self.custom_sprites[index] = rows
             self.sprite_key = None
 
     def sync_dog(self, game):
         if self.breed_revision != game.breed_revision:
-            self.custom_sprite = None
             self.breed_revision = game.breed_revision
         selecting = game.state == GameState.DOG_SELECT
         index = game.breed_cursor if selecting else game.selected_breed
         key = (index, selecting, game.breed_revision)
         if key != self.sprite_key:
-            self.apply_sprite(sheet(index) if selecting or self.custom_sprite is None else self.custom_sprite)
+            self.apply_sprite(self.custom_sprites[index] if index in self.custom_sprites else sheet(index))
             self.sprite_key = key
 
     def dog_selection(self, game):
