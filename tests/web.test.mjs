@@ -12,11 +12,12 @@ class Element {
   setAttribute(name,value) { this[name]=value; }
   async emit(name, event={}) { for (const fn of this.listeners[name] || []) await fn({preventDefault(){}, ...event}); }
 }
-function fixture(blocked=false, stored='0', search='') {
+function fixture(blocked=false, stored='0', search='', saved=null) {
   const elements = Object.fromEntries(['dog-select','dog-prev','dog-next','best','game-action','game-status','sprite-status','screen','load','load-status','canvas','boot','sprite','debug-panel','debug-go','debug-level','debug-wave','view-toggle'].map(id => ['#'+id,new Element()]));
   elements['.arcade'] = new Element();
   const buttons = ['left','right','jump'].map(action=>new Element(action));
   const data = new Map([['poop_dog_best_score', stored]]);
+  if (saved) for (const [key,value] of saved) data.set(key,value);
   const window = new Element();
   window.location = {search};
   const document = new Element();
@@ -31,6 +32,29 @@ function fixture(blocked=false, stored='0', search='') {
   return {host:window.poopDog,buttons,elements,data,window,document};
 }
 const poll = f => JSON.parse(f.host.pollInput());
+
+test('custom art and selected breed survive reload, with independent breed slots', () => {
+  const f = fixture(), a = Array(16).fill('7'.repeat(64)), b = Array(16).fill('0'.repeat(64));
+  assert.equal(f.host.saveCustomSprite(1, JSON.stringify(a)), true);
+  assert.equal(f.host.saveCustomSprite(2, JSON.stringify(b)), true);
+  f.host.publish(JSON.stringify({state:'TITLE',selectedBreed:2}));
+  const fresh = fixture(false,'0','',f.data);
+  assert.deepEqual(JSON.parse(fresh.host.loadCustomSprites()), {'1':a,'2':b});
+  assert.equal(fresh.host.loadDogChoice(), 2);
+  assert.equal(fresh.host.saveCustomSprite(1, '["bad"]'), false);
+  assert.deepEqual(JSON.parse(fresh.host.loadCustomSprites())['1'], a);
+});
+
+test('blocked or corrupt custom art storage is safe', () => {
+  const f = fixture(true);
+  assert.equal(f.host.saveCustomSprite(1, JSON.stringify(Array(16).fill('7'.repeat(64)))), false);
+  assert.equal(f.host.loadCustomSprites(), '{}');
+  assert.equal(f.host.loadDogChoice(), 0);
+  for (const value of ['null','{bad','{"1":["bad"]}']) {
+    const fresh = fixture(false,'0','',new Map([['poop_dog_custom_sprites_v1',value]]));
+    assert.equal(fresh.host.loadCustomSprites(), '{}');
+  }
+});
 test('localStorage BEST is monotonic and survives a new host', () => {
   const f=fixture(false,'1230');assert.equal(f.host.loadBest(),1230);
   f.host.saveBest(6500);f.host.saveBest(100);assert.equal(f.data.get('poop_dog_best_score'),'6500');
